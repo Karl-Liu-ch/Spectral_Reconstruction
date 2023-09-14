@@ -144,5 +144,5 @@ class Spectral_Reconstruction():
     
 if __name__ == '__main__':
     spec = Spectral_Reconstruction()
-    # spec.load_checkpoint(opt.outf)
+    spec.load_checkpoint(opt.outf)
     spec.train()

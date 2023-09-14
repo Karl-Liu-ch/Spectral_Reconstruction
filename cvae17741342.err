@@ -1,8 +1,0 @@
-Loaded module: cuda/11.8
-Loaded module: cudnn/v8.9.1.23-prod-cuda-11.X
-Another version of cudnn is loaded. Use "module swap cudnn/v8.8.0-prod-cuda-11.X" instead.
-
-Loading cudnn/v8.8.0-prod-cuda-11.X
-  ERROR: Module evaluation aborted
-/zhome/02/b/164706/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/nn/_reduction.py:42: UserWarning: size_average and reduce args will be deprecated, please use reduction='none' instead.
-  warnings.warn(warning.format(ret))
