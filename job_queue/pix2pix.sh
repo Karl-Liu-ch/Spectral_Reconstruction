@@ -3,7 +3,7 @@
 ### –- specify queue --
 #BSUB -q gpua100
 ### -- set the job Name --
-#BSUB -J cvae
+#BSUB -J pix2pix
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 2
 ### -- specify that the cores must be on the same host --
@@ -24,8 +24,8 @@
 #BSUB -B
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o cvae%J.out
-#BSUB -e cvae%J.err
+#BSUB -o pix2pix%J.out
+#BSUB -e pix2pix%J.err
 # -- end of LSF options --
 
 nvidia-smi
@@ -39,4 +39,4 @@ conda activate pytorch
 
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u Models/VAE/cvaeSPCA.py
+python -u Models/GAN/pix2pix.py

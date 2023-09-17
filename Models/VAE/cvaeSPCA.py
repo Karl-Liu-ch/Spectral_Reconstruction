@@ -14,20 +14,51 @@ import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 
-class ConditionalVAESP(nn.Module):
+## Channel Attention (CA) Layer
+class CALayer(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(CALayer, self).__init__()
+        # global average pooling: feature --> point
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        # feature channel downscale and upscale --> channel weight
+        self.conv_du = nn.Sequential(
+                nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(channel // reduction, channel // reduction, 1, padding=0, bias=True),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(channel // reduction, channel, 1, padding=0, bias=True),
+                nn.Sigmoid()
+        )
 
-    def __init__(self,
-                 in_channels: int,
-                 condition_channels: int,
-                 latent_dim: int,
-                 hidden_dims,
-                 img_size:int = 128,
-                 **kwargs) -> None:
-        super(ConditionalVAESP, self).__init__()
+    def forward(self, x):
+        y = self.avg_pool(x)
+        y = self.conv_du(y)
+        return x * y
 
-        self.latent_dim = latent_dim
-        self.img_size = img_size
+class ConvCABlock(nn.Module):
+    def __init__(self, inchannels) -> None:
+        super().__init__()
+        self.inchannels = inchannels
+        self.conv = nn.Conv2d(self.inchannels, self.inchannels, kernel_size=3, stride=1, padding=1)
+        self.bn = nn.BatchNorm2d(self.inchannels)
+        self.relu = nn.ReLU(inplace=True)
+        self.ChannelAttention = CALayer(self.inchannels, reduction=4)
+    
+    def forward(self, x):
+        identity = x
+        y = self.conv(x)
+        y = self.bn(y)
+        y = self.relu(y)
+        y = self.ChannelAttention(x)
+        return self.relu(y + identity)
+
+class ConditionalVAESPCA(nn.Module):
+
+    def __init__(self, in_channels: int, condition_channels: int,) -> None:
+        super().__init__()
+
         self.in_channels = in_channels
+        hidden_dims = [64, 128]
 
         def ConvT(input_nums, output_nums):
             layer = []
@@ -48,31 +79,27 @@ class ConditionalVAESP(nn.Module):
         self.embed_class2 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[1], stride=2))
         
         self.embed_data = nn.Conv2d(in_channels, in_channels, kernel_size=1)
-        
-        if hidden_dims is None:
-            hidden_dims = [64, 128]
             
         self.hidden_dims = hidden_dims
-        # in_channels += condition_channels # To account for the extra label channel
         # Build Encoder
-        self.encconv1 = nn.Sequential(*Conv(in_channels, hidden_dims[0], stride=2))
+        self.encconv1 = nn.Sequential(
+            *Conv(in_channels, hidden_dims[0], stride=2))
+        
         self.encconv2 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[1], stride=2))
         
-        self.hidden_size = (self.img_size // (2 ** len(hidden_dims)))
-        
-        self.fc_mu0 = nn.Sequential(*Conv(in_channels, in_channels, stride=1))
-        self.fc_var0 = nn.Sequential(*Conv(in_channels, in_channels, stride=1))
-        self.fc_mu1 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[0], stride=1))
-        self.fc_var1 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[0], stride=1))
-        self.fc_mu2 = nn.Sequential(*Conv(hidden_dims[1], hidden_dims[1], stride=1))
-        self.fc_var2 = nn.Sequential(*Conv(hidden_dims[1], hidden_dims[1], stride=1))
+        self.fc_mu0 = ConvCABlock(in_channels)
+        self.fc_var0 = ConvCABlock(in_channels)
+        self.fc_mu1 = ConvCABlock(hidden_dims[0])
+        self.fc_var1 = ConvCABlock(hidden_dims[0])
+        self.fc_mu2 = ConvCABlock(hidden_dims[1])
+        self.fc_var2 = ConvCABlock(hidden_dims[1])
 
         # Build Decoder
 
-        self.decoder_input0 = nn.Sequential(*Conv(hidden_dims[1] * 2, hidden_dims[1] * 2, stride=1))
-        self.decoder_input1 = nn.Sequential(*Conv(hidden_dims[0] * 2, hidden_dims[0] * 2, stride=1))
-        self.decoder_input2 = nn.Sequential(*Conv(in_channels + condition_channels, in_channels + condition_channels, stride=1))
-
+        self.decoder_input0 = ConvCABlock(hidden_dims[1] * 2)
+        self.decoder_input1 = ConvCABlock(hidden_dims[0] * 2)
+        self.decoder_input2 = ConvCABlock(in_channels + condition_channels)
+        
         self.decconv1 = nn.Sequential(*ConvT(hidden_dims[1] * 2, hidden_dims[1]))
         self.decconv2 = nn.Sequential(*ConvT(hidden_dims[1] * 2, in_channels + condition_channels))
 
@@ -174,6 +201,7 @@ class ConditionalVAESP(nn.Module):
         kld_loss1 = torch.mean(-0.5 * torch.sum(1 + Log_var1 - Mu1 ** 2 - Log_var1.exp(), dim = 1), dim = 0)
         kld_loss2 = torch.mean(-0.5 * torch.sum(1 + Log_var2 - Mu2 ** 2 - Log_var2.exp(), dim = 1), dim = 0)
 
+        # loss = recons_loss + kld_weight * (kld_weight0 * kld_loss0 + kld_weight1 * kld_loss1 + kld_weight2 * kld_loss2)
         loss = recons_loss + kld_weight * (kld_loss0 + kld_loss1 + kld_loss2)
         return {'loss': loss, 'Reconstruction_Loss':recons_loss, 'KLD':-kld_weight * (kld_loss0 + kld_loss1 + kld_loss2)}
 
@@ -199,16 +227,17 @@ class ConditionalVAESP(nn.Module):
         samples = self.decode(z0, z1, z2)
         return samples
 
+
 # loss function
 criterion_mrae = Loss_MRAE()
 criterion_rmse = Loss_RMSE()
 criterion_psnr = Loss_PSNR()
 
-class train_cvaeSP():
+class train_cvaeSPCA():
     def __init__(self, opt) -> None:
         self.opt = opt
-        self.model = ConditionalVAESP(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[64, 128], img_size=128).cuda()
-        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/cvaeSP/'
+        self.model = ConditionalVAESPCA(in_channels=31, condition_channels=3).cuda()
+        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/cvaeSPCA/'
         
         self.optimizer = optim.Adam(self.model.parameters(), lr=opt.init_lr, betas=(0.9, 0.999))
         
@@ -224,6 +253,7 @@ class train_cvaeSP():
         if not os.path.exists(self.root):
             os.makedirs(self.root)
     
+       
     def load_dataset(self):
         # load dataset
         print("\nloading dataset ...")
@@ -323,7 +353,7 @@ class train_cvaeSP():
         print("pretrained model loaded")
 
 if __name__ == '__main__':
-    model = ConditionalVAESP(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[64, 128], img_size=128).cuda()
+    model = ConditionalVAESPCA(in_channels=31, condition_channels=3).cuda()
     input = torch.rand([1, 31, 128, 128]).cuda()
     y = torch.rand([1, 3, 128, 128]).cuda()
     [recon, input, mu0, log_var0, mu1, log_var1, mu2, log_var2] = model(input, y)
@@ -334,5 +364,5 @@ if __name__ == '__main__':
     output = model.sample(y)
     print(output.shape)
     
-    spec = train_cvaeSP(opt)
+    spec = train_cvaeSPCA(opt)
     spec.train()
