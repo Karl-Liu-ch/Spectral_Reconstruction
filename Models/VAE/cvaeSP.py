@@ -175,7 +175,7 @@ class ConditionalVAESP(nn.Module):
         kld_loss2 = torch.mean(-0.5 * torch.sum(1 + Log_var2 - Mu2 ** 2 - Log_var2.exp(), dim = 1), dim = 0)
 
         loss = recons_loss + kld_weight * (kld_loss0 + kld_loss1 + kld_loss2)
-        return {'loss': loss, 'Reconstruction_Loss':recons_loss, 'KLD':-kld_weight * (kld_loss0 + kld_loss1 + kld_loss2)}
+        return loss
 
     def sample(self, y):
         """
@@ -304,10 +304,8 @@ class train_cvaeSP():
         state = {
             'epoch': epoch,
             'iter': self.iteration,
-            'G': self.G.state_dict(),
-            'D': self.D.state_dict(),
-            'optimG': self.optimG.state_dict(),
-            'optimD': self.optimD.state_dict(),
+            'state_dict': self.model.state_dict(),
+            'optimizer': self.optimizer.state_dict(),
         }
         if best: 
             name = 'net_epoch_best.pth'

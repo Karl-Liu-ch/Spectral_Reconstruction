@@ -13,6 +13,7 @@ from options import opt
 import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
+from torch import autograd
 
 # loss function
 criterion_mrae = Loss_MRAE()
@@ -59,14 +60,13 @@ class Discriminator(nn.Module):
             nn.Conv2d(512, 1, kernel_size=(4, 4), stride=(1, 1), padding=(0, 0)),
             nn.AdaptiveAvgPool2d((1, 1)), 
             nn.Flatten(), 
-            nn.Sigmoid()
         )
 
     def forward(self, input):
         output = self.Net(input)
         return output
     
-class CGAN():
+class CWGAN():
     def __init__(self, opt) -> None:
         super().__init__()
         self.opt = opt
@@ -81,8 +81,9 @@ class CGAN():
         self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.total_iteration, eta_min=1e-6)
         self.lossl1 = nn.L1Loss()
         self.lamda = 1
+        self.lambda_term = 10.0
         self.criterion = nn.BCELoss()
-        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/cgan/'
+        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/cwgan/'
         if not os.path.exists(self.root):
             os.makedirs(self.root)
     
@@ -94,7 +95,28 @@ class CGAN():
         self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, bgr2rgb=True, arg=True, stride=64)
         print("Validation set samples: ", len(self.val_data))
     
+    def calculate_gradient_penalty(self, real_labels, fake_labels, images):
+        eta = torch.FloatTensor(real_labels.size(0),1,1,1).uniform_(0,1).cuda()
+        eta = eta.expand(real_labels.size(0), real_labels.size(1), real_labels.size(2), real_labels.size(3))
 
+        interpolated = eta * real_labels + ((1 - eta) * fake_labels)
+
+        # define it to calculate gradient
+        interpolated = Variable(interpolated, requires_grad=True)
+
+        # calculate probability of interpolated examples
+        interpolated = torch.concat([images, interpolated], dim=1)
+        prob_interpolated = self.D(interpolated)
+
+        # calculate gradients of probabilities with respect to examples
+        gradients = autograd.grad(outputs=prob_interpolated, inputs=interpolated,
+                               grad_outputs=torch.ones(
+                                   prob_interpolated.size()).cuda(),
+                               create_graph=True, retain_graph=True)[0]
+
+        grad_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * self.lambda_term
+        return grad_penalty
+    
     def train(self):
         self.load_dataset()
         record_mrae_loss = 1000
@@ -122,16 +144,13 @@ class CGAN():
                 self.optimD.zero_grad()
                 realAB = torch.concat([images, labels], dim=1)
                 D_real = self.D(realAB)
-                real_labels = torch.ones_like(D_real).cuda()
-                loss_real = self.criterion(D_real, real_labels)
-                z = torch.randn_like(images).cuda()
-                z = torch.concat([z, images], dim=1)
-                z = Variable(z)
+                loss_real = -D_real.mean(0).view(1)
+                loss_real.backward()
                 D_fake = self.D(fakeAB.detach())
-                fake_labels = torch.zeros_like(D_fake).cuda()
-                loss_fake = self.criterion(D_fake, fake_labels)
-                loss_D = loss_fake + loss_real
-                loss_D.backward()
+                loss_fake = D_fake.mean(0).view(1)
+                loss_fake.backward()
+                gp = self.calculate_gradient_penalty(labels.data, x_fake.data, images.data)
+                gp.backward()
                 self.optimD.step()
                 self.schedulerD.step()
                 
@@ -141,7 +160,7 @@ class CGAN():
                 for p in self.D.parameters():
                     p.requires_grad = False
                 pred_fake = self.D(fakeAB)
-                loss_G = self.criterion(pred_fake, real_labels)
+                loss_G = -pred_fake.mean(0).view(1)
                 lossl1 = self.lossl1(x_fake, labels) * self.lamda
                 loss_G += lossl1
                 # train the generator
@@ -227,5 +246,5 @@ if __name__ == '__main__':
     # output = G(input)
     # print(output.shape)
     
-    spec = CGAN(opt)
+    spec = CWGAN(opt)
     spec.train()

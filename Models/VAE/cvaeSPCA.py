@@ -35,14 +35,55 @@ class CALayer(nn.Module):
         y = self.conv_du(y)
         return x * y
 
+
+class channel_attn(nn.Module):
+    def __init__(self, dimIn, heads = 8, dim_head = 64, dropout = 0.) -> None:
+        super().__init__()
+        self.dimIn = dimIn
+        self.heads = heads
+        self.scale = dim_head ** -0.5
+        self.dimhidden = heads * dim_head
+        self.to_q = nn.Linear(dimIn, self.dimhidden, bias=False)
+        self.to_k = nn.Linear(dimIn, self.dimhidden, bias=False) 
+        self.to_v = nn.Linear(dimIn, self.dimhidden, bias=False)
+        self.to_out = nn.Sequential(
+            nn.Linear(self.dimhidden, 1),
+            nn.Sigmoid(),
+            nn.Dropout(dropout), 
+            nn.Flatten()
+        )
+         
+    def forward(self, x_in):
+        b, c, h, w = x_in.shape
+        x = rearrange(x_in, 'b c h w -> b c (h w)')
+        batch, n, dimin = x.shape
+        assert dimin == self.dimIn  
+        nh = self.heads
+        dk = self.dimhidden // nh
+        
+        q = self.to_q(x).reshape(batch, n, nh, dk).transpose(1, 2)
+        k = self.to_k(x).reshape(batch, n, nh, dk).transpose(1, 2)
+        v = self.to_v(x).reshape(batch, n, nh, dk).transpose(1, 2)
+        
+        dist = torch.matmul(q, k.transpose(2,3)) * self.scale
+        dist = torch.softmax(dist, dim = -1)
+        att = torch.matmul(dist, v)
+        att = att.transpose(1, 2).reshape(batch, n, self.dimhidden)
+        
+        out = self.to_out(att).reshape(b, c, 1, 1)
+        
+        return x_in * out
+
+
 class ConvCABlock(nn.Module):
-    def __init__(self, inchannels) -> None:
+    def __init__(self, inchannels, img_size) -> None:
         super().__init__()
         self.inchannels = inchannels
         self.conv = nn.Conv2d(self.inchannels, self.inchannels, kernel_size=3, stride=1, padding=1)
         self.bn = nn.BatchNorm2d(self.inchannels)
         self.relu = nn.ReLU(inplace=True)
-        self.ChannelAttention = CALayer(self.inchannels, reduction=4)
+        # self.ChannelAttention = CALayer(self.inchannels, reduction=4)
+        self.ChannelAttention = channel_attn(img_size ** 2)
     
     def forward(self, x):
         identity = x
@@ -87,18 +128,18 @@ class ConditionalVAESPCA(nn.Module):
         
         self.encconv2 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[1], stride=2))
         
-        self.fc_mu0 = ConvCABlock(in_channels)
-        self.fc_var0 = ConvCABlock(in_channels)
-        self.fc_mu1 = ConvCABlock(hidden_dims[0])
-        self.fc_var1 = ConvCABlock(hidden_dims[0])
-        self.fc_mu2 = ConvCABlock(hidden_dims[1])
-        self.fc_var2 = ConvCABlock(hidden_dims[1])
+        self.fc_mu0 = ConvCABlock(in_channels, 128)
+        self.fc_var0 = ConvCABlock(in_channels, 128)
+        self.fc_mu1 = ConvCABlock(hidden_dims[0], 64)
+        self.fc_var1 = ConvCABlock(hidden_dims[0], 64)
+        self.fc_mu2 = ConvCABlock(hidden_dims[1], 32)
+        self.fc_var2 = ConvCABlock(hidden_dims[1], 32)
 
         # Build Decoder
 
-        self.decoder_input0 = ConvCABlock(hidden_dims[1] * 2)
-        self.decoder_input1 = ConvCABlock(hidden_dims[0] * 2)
-        self.decoder_input2 = ConvCABlock(in_channels + condition_channels)
+        self.decoder_input0 = ConvCABlock(hidden_dims[1] * 2, 32)
+        self.decoder_input1 = ConvCABlock(hidden_dims[0] * 2, 64)
+        self.decoder_input2 = ConvCABlock(in_channels + condition_channels, 128)
         
         self.decconv1 = nn.Sequential(*ConvT(hidden_dims[1] * 2, hidden_dims[1]))
         self.decconv2 = nn.Sequential(*ConvT(hidden_dims[1] * 2, in_channels + condition_channels))
@@ -334,10 +375,8 @@ class train_cvaeSPCA():
         state = {
             'epoch': epoch,
             'iter': self.iteration,
-            'G': self.G.state_dict(),
-            'D': self.D.state_dict(),
-            'optimG': self.optimG.state_dict(),
-            'optimD': self.optimD.state_dict(),
+            'state_dict': self.model.state_dict(),
+            'optimizer': self.optimizer.state_dict(),
         }
         if best: 
             name = 'net_epoch_best.pth'
@@ -353,16 +392,16 @@ class train_cvaeSPCA():
         print("pretrained model loaded")
 
 if __name__ == '__main__':
-    model = ConditionalVAESPCA(in_channels=31, condition_channels=3).cuda()
-    input = torch.rand([1, 31, 128, 128]).cuda()
-    y = torch.rand([1, 3, 128, 128]).cuda()
-    [recon, input, mu0, log_var0, mu1, log_var1, mu2, log_var2] = model(input, y)
-    print(recon.shape)
-    loss = model.loss_function(recon, input, mu0, log_var0, mu1, log_var1, mu2, log_var2)
-    print(loss['Reconstruction_Loss'].item())
-    print(loss['KLD'].item())
-    output = model.sample(y)
-    print(output.shape)
+    # model = ConditionalVAESPCA(in_channels=31, condition_channels=3).cuda()
+    # input = torch.rand([1, 31, 128, 128]).cuda()
+    # y = torch.rand([1, 3, 128, 128]).cuda()
+    # [recon, input, mu0, log_var0, mu1, log_var1, mu2, log_var2] = model(input, y)
+    # print(recon.shape)
+    # loss = model.loss_function(recon, input, mu0, log_var0, mu1, log_var1, mu2, log_var2)
+    # print(loss['Reconstruction_Loss'].item())
+    # print(loss['KLD'].item())
+    # output = model.sample(y)
+    # print(output.shape)
     
     spec = train_cvaeSPCA(opt)
     spec.train()

@@ -73,9 +73,6 @@ class ConditionalVAE(nn.Module):
                     nn.BatchNorm2d(hidden_dims[i + 1]),
                     nn.LeakyReLU())
             )
-
-
-
         self.decoder = nn.Sequential(*modules)
 
         self.final_layer = nn.Sequential(
@@ -168,15 +165,6 @@ class ConditionalVAE(nn.Module):
         z = torch.cat([z, y], dim=1)
         samples = self.decode(z)
         return samples
-
-    # def generate(self, x, **kwargs):
-    #     """
-    #     Given an input image x, returns the reconstructed image
-    #     :param x: (Tensor) [B x C x H x W]
-    #     :return: (Tensor) [B x C x H x W]
-    #     """
-
-    #     return self.forward(x, **kwargs)[0]
 
 # loss function
 criterion_mrae = Loss_MRAE()
