@@ -5,11 +5,11 @@
 ### -- set the job Name --
 #BSUB -J cvae
 ### -- ask for number of cores (default: 1) --
-#BSUB -n 2
+#BSUB -n 8
 ### -- specify that the cores must be on the same host --
 #BSUB -R "span[hosts=1]"
 ### -- Select the resources: 1 gpu in exclusive process mode --
-#BSUB -gpu "num=2:mode=exclusive_process"
+#BSUB -gpu "num=1:mode=exclusive_process"
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
 #BSUB -W 24:00
 # request 100GB of system-memory
@@ -39,4 +39,4 @@ conda activate pytorch
 
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u Models/VAE/cvaeSPCA.py
+python -u Models/VAE/cvae.py

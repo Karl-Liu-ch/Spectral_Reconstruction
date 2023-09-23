@@ -270,5 +270,5 @@ if __name__ == '__main__':
     # print(output.shape)
     
     spec = pix2pix(opt)
-    # spec.load_checkpoint()
+    spec.load_checkpoint()
     spec.train()

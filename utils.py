@@ -5,6 +5,31 @@ import torch.nn as nn
 import logging
 import numpy as np
 import os
+from torch import nn, optim
+from torchmetrics.image import StructuralSimilarityIndexMeasure
+from torchmetrics.image import SpectralAngleMapper
+from torchmetrics.image.fid import FrechetInceptionDistance
+from spectral import *
+import cv2
+
+def bgr2rgb(bgr):
+    bgr = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+    bgr = np.float32(bgr)
+    rgb = (bgr-bgr.min())/(bgr.max()-bgr.min())
+    return rgb
+
+def reconRGB(labels):
+    # view = ImageView()
+    subhypers = []
+    for b in range(labels.shape[0]):
+        label = labels[b].permute(1,2,0).cpu().numpy()
+        # view.set_data(label, (29, 19, 9))
+        rgb = get_rgb(label, (29, 19, 9))
+        subhyper = torch.tensor(rgb.transpose(2, 0, 1), dtype=torch.float32).cuda()
+        subhyper = subhyper.unsqueeze(0)
+        subhypers.append(subhyper)
+    subhypers = torch.concat(subhypers, dim=0)
+    return subhypers
 
 class AverageMeter(object):
     def __init__(self):
@@ -41,6 +66,41 @@ def save_checkpoint(model_path, epoch, iteration, model, optimizer):
     }
 
     torch.save(state, os.path.join(model_path, 'net_%depoch.pth' % epoch))
+
+class Loss_Fid(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fid = FrechetInceptionDistance(feature=2048)
+        
+    def forward(self, outputs, label):
+        outputs = outputs * 255
+        label = label * 255
+        outputs = outputs.type(torch.cuda.ByteTensor)
+        label = label.type(torch.cuda.ByteTensor)
+        self.fid.update(label, real=True)
+        self.fid.update(outputs, real=False)
+        return self.fid.compute()
+
+class Loss_SAM(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.sam = SpectralAngleMapper()
+    
+    def forward(self, outputs, label):
+        sam_score = self.sam(outputs, label)
+        sam_score = torch.mean(sam_score.view(-1))
+        return sam_score
+
+class Loss_SSIM(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
+        
+    def forward(self, outputs, label):
+        assert outputs.shape == label.shape
+        ssim_score = self.ssim(outputs, label)
+        ssim_score = torch.mean(ssim_score.view(-1))
+        return ssim_score
 
 class Loss_MRAE(nn.Module):
     def __init__(self):
@@ -99,3 +159,15 @@ def record_loss(loss_csv, epoch, iteration, epoch_time, lr, train_loss, test_los
     loss_csv.write('{},{},{},{},{},{}\n'.format(epoch, iteration, epoch_time, lr, train_loss, test_loss))
     loss_csv.flush()
     loss_csv.close
+    
+if __name__ == '__main__':
+    criterion_ssim = Loss_SSIM()
+    criterion_sam = Loss_SAM()
+    criterion_mrae = Loss_MRAE()
+    criterion_rmse = Loss_RMSE()
+    criterion_psnr = Loss_PSNR()
+    # target = torch.randn([64, 31, 128, 128]).cuda()
+    # pred = target * 0.75
+    # print(criterion_sam(pred, target))
+    
+    

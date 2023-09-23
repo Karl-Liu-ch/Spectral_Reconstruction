@@ -8,10 +8,11 @@ from einops.layers.torch import Rearrange
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 from hsi_dataset import TrainDataset, ValidDataset
-from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR
+from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Loss_Fid, Loss_SAM, Loss_SSIM, reconRGB
 import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
+from options import opt
 
 class ConditionalVAE(nn.Module):
 
@@ -170,11 +171,14 @@ class ConditionalVAE(nn.Module):
 criterion_mrae = Loss_MRAE()
 criterion_rmse = Loss_RMSE()
 criterion_psnr = Loss_PSNR()
+criterion_sam = Loss_SAM().cuda()
+criterion_fid = Loss_Fid().cuda()
+criterion_ssim = Loss_SSIM().cuda()
 
 class train_cvae():
     def __init__(self, opt) -> None:
         self.opt = opt
-        self.model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=64).cuda()
+        self.model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=128).cuda()
         self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/cvae/'
         
         self.optimizer = optim.Adam(self.model.parameters(), lr=opt.init_lr, betas=(0.9, 0.999))
@@ -229,8 +233,8 @@ class train_cvae():
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
                         % (self.iteration, self.total_iteration, lr, losses.avg))
                 if self.iteration % 1000 == 0:
-                    mrae_loss, rmse_loss, psnr_loss = self.validate(val_loader)
-                    print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}')
+                    mrae_loss, rmse_loss, psnr_loss, sam_loss, fid_loss, ssim_loss = self.validate(val_loader)
+                    print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, FID: {fid_loss}, SSIM: {ssim_loss}')
                     # Save model
                     if torch.abs(mrae_loss - record_mrae_loss) < 0.01 or mrae_loss < record_mrae_loss or self.iteration % 5000 == 0:
                         print(f'Saving to {self.opt.outf}')
@@ -239,13 +243,19 @@ class train_cvae():
                             record_mrae_loss = mrae_loss
                     # print loss
                     print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
-                        "Test RMSE: %.9f, Test PSNR: %.9f " % (self.iteration, self.iteration//1000, lr, losses.avg, mrae_loss, rmse_loss, psnr_loss))
+                        "Test RMSE: %.9f, Test PSNR: %.9f, SAM: %.9f, FID: %.9f, SSIM: %.9f " % (self.iteration, 
+                                                                                                 self.iteration//1000, lr, 
+                                                                                                 losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, 
+                                                                                                 fid_loss, ssim_loss))
                 
     def validate(self, val_loader):
         self.model.eval()
         losses_mrae = AverageMeter()
         losses_rmse = AverageMeter()
         losses_psnr = AverageMeter()
+        losses_sam = AverageMeter()
+        losses_fid = AverageMeter()
+        losses_ssim = AverageMeter()
         for i, (input, target) in enumerate(val_loader):
             input = input.cuda()
             target = target.cuda()
@@ -255,11 +265,18 @@ class train_cvae():
                 loss_mrae = criterion_mrae(output, target)
                 loss_rmse = criterion_rmse(output, target)
                 loss_psnr = criterion_psnr(output, target)
+                loss_sam = criterion_sam(output, target)
+                rgb = reconRGB(output)
+                loss_fid = criterion_fid(rgb, input)
+                loss_ssim = criterion_ssim(rgb, input)
             # record loss
             losses_mrae.update(loss_mrae.data)
             losses_rmse.update(loss_rmse.data)
             losses_psnr.update(loss_psnr.data)
-        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg
+            losses_sam.update(loss_sam.data)
+            losses_fid.update(loss_fid.data)
+            losses_ssim.update(loss_ssim.data)
+        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_fid.avg, losses_ssim.avg
     
     def test(self, test_loader):
         pass
@@ -283,10 +300,13 @@ class train_cvae():
         print("pretrained model loaded")
 
 if __name__ == '__main__':
-    model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=64).cuda()
-    input = torch.rand([1, 31, 64, 64]).cuda()
-    y = torch.rand([1, 3, 64, 64]).cuda()
-    [output, input, mu, logvar] = model(input, y)
-    loss = model.loss_function(output, input, mu, logvar)
-    print(loss['Reconstruction_Loss'].item())
-    print(loss['KLD'].item())
+    # model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=64).cuda()
+    # input = torch.rand([1, 31, 64, 64]).cuda()
+    # y = torch.rand([1, 3, 64, 64]).cuda()
+    # [output, input, mu, logvar] = model(input, y)
+    # loss = model.loss_function(output, input, mu, logvar)
+    # print(loss['Reconstruction_Loss'].item())
+    # print(loss['KLD'].item())
+    spec = train_cvae(opt)
+    spec.load_checkpoint()
+    spec.train()
