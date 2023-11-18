@@ -7,12 +7,21 @@ from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
-from hsi_dataset import TrainDataset, ValidDataset
-from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Loss_Fid, Loss_SAM, Loss_SSIM, reconRGB
+from dataset.dataset import TrainDataset, ValidDataset
+# from hsi_dataset import TrainDataset, ValidDataset
+from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Loss_Fid, Loss_SAM, Loss_SSIM, reconRGB, Loss_SID
 import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from options import opt
+os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
+if opt.multigpu:
+    os.environ["CUDA_VISIBLE_DEVICES"] = '0,1'
+    local_rank = int(os.environ["LOCAL_RANK"])
+    torch.cuda.set_device(local_rank)
+else:
+    os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class ConditionalVAE(nn.Module):
 
@@ -29,8 +38,8 @@ class ConditionalVAE(nn.Module):
         self.img_size = img_size
         self.in_channels = in_channels
 
-        self.embed_class = nn.Conv2d(condition_channels, condition_channels, kernel_size=1)
-        self.embed_data = nn.Conv2d(in_channels, in_channels, kernel_size=1)
+        self.embed_class = nn.Conv2d(condition_channels, condition_channels, kernel_size=1, bias=False)
+        self.embed_data = nn.Conv2d(in_channels, in_channels, kernel_size=1, bias=False)
 
         modules = []
         if hidden_dims is None:
@@ -43,7 +52,7 @@ class ConditionalVAE(nn.Module):
             modules.append(
                 nn.Sequential(
                     nn.Conv2d(in_channels, out_channels=h_dim,
-                              kernel_size= 3, stride= 2, padding  = 1),
+                              kernel_size= 3, stride= 2, padding  = 1, bias=False),
                     nn.BatchNorm2d(h_dim),
                     nn.LeakyReLU())
             )
@@ -70,7 +79,7 @@ class ConditionalVAE(nn.Module):
                                        kernel_size=3,
                                        stride = 2,
                                        padding=1,
-                                       output_padding=1),
+                                       output_padding=1, bias=False),
                     nn.BatchNorm2d(hidden_dims[i + 1]),
                     nn.LeakyReLU())
             )
@@ -86,8 +95,9 @@ class ConditionalVAE(nn.Module):
                             nn.BatchNorm2d(hidden_dims[-1]),
                             nn.LeakyReLU(),
                             nn.Conv2d(hidden_dims[-1], out_channels= self.in_channels,
-                                      kernel_size= 3, padding= 1),
-                            nn.Tanh())
+                                      kernel_size= 3, padding= 1, bias=False),
+                            # nn.Tanh()
+                            )
 
     def encode(self, input):
         """
@@ -143,7 +153,7 @@ class ConditionalVAE(nn.Module):
         # kld_weight = 3e-3  # Account for the minibatch samples from the dataset
         kld_weight = 100 / 128 / 128  # Account for the minibatch samples from the dataset
         # kld_weight = 1  # Account for the minibatch samples from the dataset
-        recons_loss =F.mse_loss(recons, input)
+        recons_loss =F.l1_loss(recons, input) # L1 loss + spctral angle metric
 
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim = 1), dim = 0)
 
@@ -161,7 +171,7 @@ class ConditionalVAE(nn.Module):
         y = nn.Flatten()(y)
         z = torch.randn(y.shape[0], self.latent_dim)
 
-        z = z.cuda()
+        z = z.to(device)
 
         z = torch.cat([z, y], dim=1)
         samples = self.decode(z)
@@ -171,23 +181,37 @@ class ConditionalVAE(nn.Module):
 criterion_mrae = Loss_MRAE()
 criterion_rmse = Loss_RMSE()
 criterion_psnr = Loss_PSNR()
-criterion_sam = Loss_SAM().cuda()
-criterion_fid = Loss_Fid().cuda()
-criterion_ssim = Loss_SSIM().cuda()
+criterion_sam = Loss_SAM()
+criterion_sid = Loss_SID()
+# criterion_fid = Loss_Fid().to(device)
+# criterion_ssim = Loss_SSIM().to(device)
 
 class train_cvae():
-    def __init__(self, opt) -> None:
+    def __init__(self, opt, multiGPU = False) -> None:
         self.opt = opt
-        self.model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=128).cuda()
+        self.model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=128)
+        self.multiGPU = multiGPU
+        if self.multiGPU:
+            self.model = nn.DataParallel(self.model)
+        self.model.to(device)
         self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/cvae/'
         
         self.optimizer = optim.Adam(self.model.parameters(), lr=opt.init_lr, betas=(0.9, 0.999))
         
         # iterations
+        self.epoch = 0
+        self.end_epoch = opt.end_epoch
         per_epoch_iteration = 1000
         self.total_iteration = per_epoch_iteration*opt.end_epoch
         self.iteration = 0
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, self.total_iteration, eta_min=1e-6)
+        
+        self.metrics = {
+            'MRAE':[],
+            'RMSE':[],
+            'PSNR':[],
+            'SAM':[]
+        }
         
         # make checkpoint dir
         if not os.path.exists(opt.outf):
@@ -198,9 +222,9 @@ class train_cvae():
     def load_dataset(self):
         # load dataset
         print("\nloading dataset ...")
-        self.train_data = TrainDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, bgr2rgb=True, arg=True, stride=self.opt.stride)
+        self.train_data = TrainDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, test_ratio=0.1)
         print(f"Iteration per epoch: {len(self.train_data)}")
-        self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, bgr2rgb=True, arg=True, stride=64)
+        self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, test_ratio=0.1)
         print("Validation set samples: ", len(self.val_data))
 
     def train(self):
@@ -213,14 +237,17 @@ class train_cvae():
                                     pin_memory=True, drop_last=True)
             val_loader = DataLoader(dataset=self.val_data, batch_size=self.opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
             for i, (images, labels) in enumerate(train_loader):
-                labels = labels.cuda()
-                images = images.cuda()
+                labels = labels.to(device)
+                images = images.to(device)
                 images = Variable(images)
                 labels = Variable(labels)
                 lr = self.optimizer.param_groups[0]['lr']
                 self.optimizer.zero_grad()
                 [output, input, mu, log_var] = self.model(labels, images)
-                Loss_dict = self.model.loss_function(output, input, mu, log_var)
+                if self.multiGPU:
+                    Loss_dict = self.model.module.loss_function(output, input, mu, log_var)
+                else:
+                    Loss_dict = self.model.loss_function(output, input, mu, log_var)
                 loss = Loss_dict['loss']
                 loss_mrae = criterion_mrae(output, input)
                 loss += loss_mrae
@@ -232,21 +259,22 @@ class train_cvae():
                 if self.iteration % 20 == 0:
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
                         % (self.iteration, self.total_iteration, lr, losses.avg))
-                if self.iteration % 1000 == 0:
-                    mrae_loss, rmse_loss, psnr_loss, sam_loss, fid_loss, ssim_loss = self.validate(val_loader)
-                    print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, FID: {fid_loss}, SSIM: {ssim_loss}')
-                    # Save model
-                    if torch.abs(mrae_loss - record_mrae_loss) < 0.01 or mrae_loss < record_mrae_loss or self.iteration % 5000 == 0:
-                        print(f'Saving to {self.opt.outf}')
-                        self.save_checkpoint()
-                        if mrae_loss < record_mrae_loss:
-                            record_mrae_loss = mrae_loss
-                    # print loss
-                    print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
-                        "Test RMSE: %.9f, Test PSNR: %.9f, SAM: %.9f, FID: %.9f, SSIM: %.9f " % (self.iteration, 
-                                                                                                 self.iteration//1000, lr, 
-                                                                                                 losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, 
-                                                                                                 fid_loss, ssim_loss))
+            # if self.iteration % 1000 == 0:
+            mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
+            print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
+            # Save model
+            # if torch.abs(mrae_loss - record_mrae_loss) < 0.01 or mrae_loss < record_mrae_loss or self.iteration % 5000 == 0:
+            print(f'Saving to {self.root}')
+            self.save_checkpoint()
+            if mrae_loss < record_mrae_loss:
+                record_mrae_loss = mrae_loss
+                self.save_checkpoint(best=True)
+            # print loss
+            print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
+                "Test RMSE: %.9f, Test PSNR: %.9f, SAM: %.9f, SID: %.9f " % (self.iteration, 
+                                                                self.epoch, lr, 
+                                                                losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss))
+            self.epoch += 1
                 
     def validate(self, val_loader):
         self.model.eval()
@@ -254,59 +282,107 @@ class train_cvae():
         losses_rmse = AverageMeter()
         losses_psnr = AverageMeter()
         losses_sam = AverageMeter()
-        losses_fid = AverageMeter()
-        losses_ssim = AverageMeter()
+        losses_sid = AverageMeter()
+        # losses_fid = AverageMeter()
+        # losses_ssim = AverageMeter()
         for i, (input, target) in enumerate(val_loader):
-            input = input.cuda()
-            target = target.cuda()
+            input = input.to(device)
+            target = target.to(device)
             with torch.no_grad():
                 # compute output
-                output = self.model.sample(input)
+                if self.multiGPU:
+                    output = self.model.module.sample(input)
+                else:
+                    output = self.model.sample(input)
                 loss_mrae = criterion_mrae(output, target)
                 loss_rmse = criterion_rmse(output, target)
                 loss_psnr = criterion_psnr(output, target)
                 loss_sam = criterion_sam(output, target)
-                rgb = reconRGB(output)
-                loss_fid = criterion_fid(rgb, input)
-                loss_ssim = criterion_ssim(rgb, input)
+                loss_sid = criterion_sid(output, target)
+                # rgb = reconRGB(output)
+                # loss_fid = criterion_fid(rgb, input)
+                # loss_ssim = criterion_ssim(rgb, input)
             # record loss
             losses_mrae.update(loss_mrae.data)
             losses_rmse.update(loss_rmse.data)
             losses_psnr.update(loss_psnr.data)
             losses_sam.update(loss_sam.data)
-            losses_fid.update(loss_fid.data)
-            losses_ssim.update(loss_ssim.data)
-        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_fid.avg, losses_ssim.avg
+            losses_sid.update(loss_sid.data)
+            # losses_fid.update(loss_fid.data)
+            # losses_ssim.update(loss_ssim.data)
+        criterion_sam.reset()
+        criterion_psnr.reset()
+        self.metrics['MRAE'].append(losses_mrae.avg)
+        self.metrics['RMSE'].append(losses_rmse.avg)
+        self.metrics['PSNR'].append(losses_psnr.avg)
+        self.metrics['SAM'].append(losses_sam.avg)
+        self.save_metrics()
+        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg
     
     def test(self, test_loader):
         pass
     
-    def save_checkpoint(self):
-        epoch = self.iteration // 1000
-        state = {
-            'epoch': epoch,
-            'iter': self.iteration,
-            'state_dict': self.model.state_dict(),
-            'optimizer': self.optimizer.state_dict(),
-        }
+    def save_metrics(self):
+        name = 'metrics.pth'
+        torch.save(self.metrics, os.path.join(self.root, name))
+        
+    def load_metrics(self):
+        name = 'metrics.pth'
+        checkpoint = torch.load(os.path.join(self.root, name))
+        self.metrics = checkpoint
+        
+    def save_checkpoint(self, best = False):
+        if self.multiGPU:
+            state = {
+                'epoch': self.epoch,
+                'iter': self.iteration,
+                'state_dict': self.model.module.state_dict(),
+                'optimizer': self.optimizer.state_dict(),
+            }
+        else:
+            state = {
+                'epoch': self.epoch,
+                'iter': self.iteration,
+                'state_dict': self.model.state_dict(),
+                'optimizer': self.optimizer.state_dict(),
+            }
 
-        torch.save(state, os.path.join(self.root, 'net_epoch_beta1.pth'))
+        if best: 
+            name = 'net_epoch_best.pth'
+        else:
+            name = 'net_%04depoch.pth' % self.epoch
+            oldname = 'net_%04depoch.pth' % (self.epoch - 5)
+            if os.path.exists(os.path.join(self.root, oldname)):
+                os.remove(os.path.join(self.root, oldname))
+                print(oldname, ' Removed. ')
+        torch.save(state, os.path.join(self.root, name))
         
     def load_checkpoint(self):
-        checkpoint = torch.load(os.path.join(self.root, 'net_epoch_beta1.pth'))
-        self.model.load_state_dict(checkpoint['state_dict'])
+        checkpoint = torch.load(os.path.join(self.root, 'net_epoch_best.pth'))
+        if self.multiGPU:
+            self.model.module.load_state_dict(checkpoint['state_dict'])
+        else:
+            self.model.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.iteration = checkpoint['iter']
+        self.epoch = checkpoint['epoch']
+        try:
+            self.load_metrics()
+        except:
+            pass
         print("pretrained model loaded")
 
 if __name__ == '__main__':
-    # model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=64).cuda()
-    # input = torch.rand([1, 31, 64, 64]).cuda()
-    # y = torch.rand([1, 3, 64, 64]).cuda()
+    # model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=64).to(device)
+    # input = torch.rand([1, 31, 64, 64]).to(device)
+    # y = torch.rand([1, 3, 64, 64]).to(device)
     # [output, input, mu, logvar] = model(input, y)
     # loss = model.loss_function(output, input, mu, logvar)
     # print(loss['Reconstruction_Loss'].item())
     # print(loss['KLD'].item())
-    spec = train_cvae(opt)
-    spec.load_checkpoint()
+    spec = train_cvae(opt, multiGPU=opt.multigpu)
+    try:
+        spec.load_checkpoint()
+    except:
+        print('failed to load trained model')
     spec.train()

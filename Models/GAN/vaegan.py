@@ -7,18 +7,29 @@ from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
-from hsi_dataset import TrainDataset, ValidDataset
-from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR
+# from hsi_dataset import TrainDataset, ValidDataset
+from dataset.dataset import TrainDataset, ValidDataset, TestDataset
+from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Loss_Fid, Loss_SAM, Loss_SSIM, reconRGB, Loss_SID
 from options import opt
 import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 import functools
+os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
+if opt.multigpu:
+    os.environ["CUDA_VISIBLE_DEVICES"] = '0,1'
+    local_rank = int(os.environ["LOCAL_RANK"])
+    torch.cuda.set_device(local_rank)
+else:
+    os.environ["CUDA_VISIBLE_DEVICES"] = '1'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # loss function
 criterion_mrae = Loss_MRAE()
 criterion_rmse = Loss_RMSE()
 criterion_psnr = Loss_PSNR()
+criterion_sam = Loss_SAM()
+criterion_sid = Loss_SID()
 
 class Encoder(nn.Module):
     def __init__(self,
@@ -30,36 +41,48 @@ class Encoder(nn.Module):
 
         def ConvT(input_nums, output_nums):
             layer = []
-            layer.append(nn.ConvTranspose2d(input_nums, output_nums, kernel_size=(4,4), stride=(2,2), padding=(1,1)))
+            layer.append(nn.ConvTranspose2d(input_nums, output_nums, kernel_size=(4,4), stride=(2,2), padding=(1,1), bias=False))
             layer.append(nn.BatchNorm2d(output_nums))
             layer.append(nn.ReLU())
             return layer
         
         def Conv(input_nums, output_nums, stride):
             layer = []
-            layer.append(nn.Conv2d(input_nums, output_nums, kernel_size=(3,3), stride=stride, padding=(1,1)))
+            layer.append(nn.Conv2d(input_nums, output_nums, kernel_size=(3,3), stride=stride, padding=(1,1), bias=False))
             layer.append(nn.BatchNorm2d(output_nums))
             layer.append(nn.ReLU())
             return layer
         
         hidden_dims = [64, 128]
-        self.embed_class0 = nn.Conv2d(condition_channels, condition_channels, kernel_size=1)
+        self.embed_class0 = nn.Conv2d(condition_channels, condition_channels, kernel_size=1, bias=False)
         self.embed_class1 = nn.Sequential(*Conv(condition_channels, hidden_dims[0], stride=2))
         self.embed_class2 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[1], stride=2))
         
-        self.embed_data = nn.Conv2d(in_channels, in_channels, kernel_size=1)
+        self.embed_data = nn.Conv2d(in_channels, in_channels, kernel_size=1, bias=False)
             
         self.hidden_dims = hidden_dims
         # Build Encoder
         self.encconv1 = nn.Sequential(*Conv(in_channels, hidden_dims[0], stride=2))
         self.encconv2 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[1], stride=2))
         
-        self.fc_mu0 = nn.Sequential(*Conv(in_channels, in_channels, stride=1))
-        self.fc_var0 = nn.Sequential(*Conv(in_channels, in_channels, stride=1))
-        self.fc_mu1 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[0], stride=1))
-        self.fc_var1 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[0], stride=1))
-        self.fc_mu2 = nn.Sequential(*Conv(hidden_dims[1], hidden_dims[1], stride=1))
-        self.fc_var2 = nn.Sequential(*Conv(hidden_dims[1], hidden_dims[1], stride=1))
+        self.fc_mu0 = nn.Sequential(*Conv(in_channels, in_channels, stride=1), 
+                                    nn.Conv2d(in_channels, in_channels, kernel_size=(3,3), stride=(1,1), padding=(1,1), bias=False)
+                                    )
+        self.fc_var0 = nn.Sequential(*Conv(in_channels, in_channels, stride=1), 
+                                    nn.Conv2d(in_channels, in_channels, kernel_size=(3,3), stride=(1,1), padding=(1,1), bias=False)
+                                    )
+        self.fc_mu1 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[0], stride=1), 
+                                    nn.Conv2d(hidden_dims[0], hidden_dims[0], kernel_size=(3,3), stride=(1,1), padding=(1,1), bias=False)
+                                    )
+        self.fc_var1 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[0], stride=1), 
+                                    nn.Conv2d(hidden_dims[0], hidden_dims[0], kernel_size=(3,3), stride=(1,1), padding=(1,1), bias=False)
+                                    )
+        self.fc_mu2 = nn.Sequential(*Conv(hidden_dims[1], hidden_dims[1], stride=1), 
+                                    nn.Conv2d(hidden_dims[1], hidden_dims[1], kernel_size=(3,3), stride=(1,1), padding=(1,1), bias=False)
+                                    )
+        self.fc_var2 = nn.Sequential(*Conv(hidden_dims[1], hidden_dims[1], stride=1), 
+                                    nn.Conv2d(hidden_dims[1], hidden_dims[1], kernel_size=(3,3), stride=(1,1), padding=(1,1), bias=False)
+                                    )
         
     def forward(self, input):
         """
@@ -111,14 +134,14 @@ class Decoder(nn.Module):
 
         def ConvT(input_nums, output_nums):
             layer = []
-            layer.append(nn.ConvTranspose2d(input_nums, output_nums, kernel_size=(4,4), stride=(2,2), padding=(1,1)))
+            layer.append(nn.ConvTranspose2d(input_nums, output_nums, kernel_size=(4,4), stride=(2,2), padding=(1,1), bias=False))
             layer.append(nn.BatchNorm2d(output_nums))
             layer.append(nn.ReLU())
             return layer
         
         def Conv(input_nums, output_nums, stride):
             layer = []
-            layer.append(nn.Conv2d(input_nums, output_nums, kernel_size=(3,3), stride=stride, padding=(1,1)))
+            layer.append(nn.Conv2d(input_nums, output_nums, kernel_size=(3,3), stride=stride, padding=(1,1), bias=False))
             layer.append(nn.BatchNorm2d(output_nums))
             layer.append(nn.ReLU())
             return layer
@@ -135,8 +158,9 @@ class Decoder(nn.Module):
 
         self.final_layer = nn.Sequential(
                             nn.Conv2d((in_channels + condition_channels) * 2, out_channels= self.in_channels,
-                                      kernel_size= 3, padding= 1),
-                            nn.Tanh())
+                                      kernel_size= 3, padding= 1, bias=False),
+                            # nn.Tanh()
+                            )
         self.embed_class0 = nn.Conv2d(condition_channels, condition_channels, kernel_size=1)
         self.embed_class1 = nn.Sequential(*Conv(condition_channels, hidden_dims[0], stride=2))
         self.embed_class2 = nn.Sequential(*Conv(hidden_dims[0], hidden_dims[1], stride=2))
@@ -172,7 +196,7 @@ def vae_loss(recons, input, mu0, log_var0, mu1, log_var1, mu2, log_var2):
     # kld_weight = 3e-3  # Account for the minibatch samples from the dataset
     # kld_weight = 1024 / 128 / 128 / 31  # Account for the minibatch samples from the dataset
     kld_weight = 1 / 128 / 128  # Account for the minibatch samples from the dataset
-    recons_loss =F.mse_loss(recons, input)
+    recons_loss =F.l1_loss(recons, input)
     
     Mu0 = rearrange(mu0, 'b c h w -> b (c h w)')
     Log_var0 = rearrange(log_var0, 'b c h w -> b (c h w)')
@@ -239,20 +263,33 @@ class NLayerDiscriminator(nn.Module):
         return F.sigmoid(self.model(input))
 
 class vaegan():
-    def __init__(self, opt) -> None:
+    def __init__(self, opt, multiGPU = False) -> None:
         super().__init__()
         self.opt = opt
-        self.Encoder = Encoder(31, 3).cuda()
-        self.G = Decoder(31, 3).cuda()
-        self.D = NLayerDiscriminator(34).cuda()
+        self.multiGPU = multiGPU
+        self.Encoder = Encoder(31, 3)
+        self.G = Decoder(31, 3)
+        self.D = NLayerDiscriminator(34)
+        if self.multiGPU:
+            self.Encoder = nn.DataParallel(self.Encoder)
+            self.G = nn.DataParallel(self.G)
+            self.D = nn.DataParallel(self.D)
+        self.Encoder.cuda()
+        self.G.cuda()
+        self.D.cuda()
+        self.epoch = 0
+        self.end_epoch = opt.end_epoch
         per_epoch_iteration = 1000
         self.total_iteration = per_epoch_iteration*opt.end_epoch
         self.iteration = 0
-        self.optimG = optim.Adam(self.G.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
+        self.optimG = optim.RMSprop(self.G.parameters(), lr=self.opt.init_lr, alpha=0.9, eps=1e-8, weight_decay=0,
+                                      momentum=0, centered=False)
         self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.total_iteration, eta_min=1e-6)
-        self.optimEnc = optim.Adam(self.Encoder.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
+        self.optimEnc = optim.RMSprop(self.Encoder.parameters(), lr=self.opt.init_lr, alpha=0.9, eps=1e-8, weight_decay=0,
+                                      momentum=0, centered=False)
         self.schedulerEnc = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimEnc, self.total_iteration, eta_min=1e-6)
-        self.optimD = optim.Adam(self.D.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
+        self.optimD = optim.RMSprop(self.D.parameters(), lr=self.opt.init_lr, alpha=0.9, eps=1e-8, weight_decay=0,
+                                      momentum=0, centered=False)
         self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.total_iteration, eta_min=1e-6)
         self.lossl1 = nn.L1Loss()
         self.criterionGAN = nn.MSELoss()
@@ -264,14 +301,19 @@ class vaegan():
     def load_dataset(self):
         # load dataset
         print("\nloading dataset ...")
-        self.train_data = TrainDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, bgr2rgb=True, arg=True, stride=self.opt.stride)
+        self.train_data = TrainDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
         print(f"Iteration per epoch: {len(self.train_data)}")
-        self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, bgr2rgb=True, arg=True, stride=64)
+        self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
+        print("Validation set samples: ", len(self.val_data))
+        self.test_data = TestDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
         print("Validation set samples: ", len(self.val_data))
     
     def vae_recon(self, images, labels):
         [mu0, log_var0, mu1, log_var1, mu2, log_var2] = self.Encoder(labels)
-        [z2, z1, z0] = self.Encoder.reparameterize(mu0, log_var0, mu1, log_var1, mu2, log_var2)
+        if self.multiGPU:
+            [z2, z1, z0] = self.Encoder.module.reparameterize(mu0, log_var0, mu1, log_var1, mu2, log_var2)
+        else:
+            [z2, z1, z0] = self.Encoder.reparameterize(mu0, log_var0, mu1, log_var1, mu2, log_var2)
         recon = self.G(z0, z1, z2, images)
         return recon, mu0, log_var0, mu1, log_var1, mu2, log_var2
     
@@ -317,8 +359,8 @@ class vaegan():
                 loss_real.backward(retain_graph=True)
                 
                 # recon
-                D_recon = self.D(reconAB)
-                fake_labels = torch.zeros_like(D_recon.detach()).cuda()
+                D_recon = self.D(reconAB.detach())
+                fake_labels = torch.zeros_like(D_recon).cuda()
                 loss_recon = self.criterionGAN(D_recon, fake_labels)
                 loss_recon.backward(retain_graph=True)
                 
@@ -366,18 +408,22 @@ class vaegan():
                 if self.iteration % 20 == 0:
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
                         % (self.iteration, self.total_iteration, lrG, losses.avg))
-                if self.iteration % 1000 == 0:
-                    mrae_loss, rmse_loss, psnr_loss = self.validate(val_loader)
-                    print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}')
-                    # Save model
-                    if torch.abs(mrae_loss - record_mrae_loss) < 0.01 or mrae_loss < record_mrae_loss or self.iteration % 5000 == 0:
-                        print(f'Saving to {self.root}')
-                        self.save_checkpoint(best = True)
-                        if mrae_loss < record_mrae_loss:
-                            record_mrae_loss = mrae_loss
-                    # print loss
-                    print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
-                        "Test RMSE: %.9f, Test PSNR: %.9f " % (self.iteration, self.iteration//1000, lrG, losses.avg, mrae_loss, rmse_loss, psnr_loss))
+            # if self.iteration % 1000 == 0:
+            mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
+            print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
+            # Save model
+            # if torch.abs(mrae_loss - record_mrae_loss) < 0.01 or mrae_loss < record_mrae_loss or self.iteration % 5000 == 0:
+            print(f'Saving to {self.root}')
+            self.save_checkpoint()
+            if mrae_loss < record_mrae_loss:
+                record_mrae_loss = mrae_loss
+                self.save_checkpoint(True)
+            # print loss
+            print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
+                "Test RMSE: %.9f, Test PSNR: %.9f, SAM: %.9f, SID: %.9f " % (self.iteration, 
+                                                                self.epoch, lrD, 
+                                                                losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss))
+            self.epoch += 1
                 
     def validate(self, val_loader):
         self.G.eval()
@@ -385,6 +431,8 @@ class vaegan():
         losses_mrae = AverageMeter()
         losses_rmse = AverageMeter()
         losses_psnr = AverageMeter()
+        losses_sam = AverageMeter()
+        losses_sid = AverageMeter()
         for i, (input, target) in enumerate(val_loader):
             input = input.cuda()
             target = target.cuda()
@@ -394,51 +442,86 @@ class vaegan():
                 loss_mrae = criterion_mrae(output, target)
                 loss_rmse = criterion_rmse(output, target)
                 loss_psnr = criterion_psnr(output, target)
+                loss_sam = criterion_sam(output, target)
+                loss_sid = criterion_sid(output, target)
+                # rgb = reconRGB(output)
+                # loss_fid = criterion_fid(rgb, input)
+                # loss_ssim = criterion_ssim(rgb, input)
             # record loss
             losses_mrae.update(loss_mrae.data)
             losses_rmse.update(loss_rmse.data)
             losses_psnr.update(loss_psnr.data)
-        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg
+            losses_sam.update(loss_sam.data)
+            losses_sid.update(loss_sid.data)
+            # losses_fid.update(loss_fid.data)
+            # losses_ssim.update(loss_ssim.data)
+        criterion_sam.reset()
+        criterion_psnr.reset()
+        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg
     
     def test(self, test_loader):
         pass
     
     def save_checkpoint(self, best = False):
-        epoch = self.iteration // 1000
-        state = {
-            'epoch': epoch,
-            'iter': self.iteration,
-            'G': self.G.state_dict(),
-            'D': self.D.state_dict(),
-            'Enc': self.Encoder.state_dict(),
-            'optimG': self.optimG.state_dict(),
-            'optimD': self.optimD.state_dict(),
-            'optimEnc': self.optimEnc.state_dict()
-        }
+        if self.multiGPU:
+            state = {
+                'epoch': self.epoch,
+                'iter': self.iteration,
+                'G': self.G.module.state_dict(),
+                'D': self.D.module.state_dict(),
+                'Enc': self.Encoder.module.state_dict(),
+                'optimG': self.optimG.state_dict(),
+                'optimD': self.optimD.state_dict(),
+                'optimEnc': self.optimEnc.state_dict()
+            }
+        else:
+            state = {
+                'epoch': self.epoch,
+                'iter': self.iteration,
+                'G': self.G.state_dict(),
+                'D': self.D.state_dict(),
+                'Enc': self.Encoder.state_dict(),
+                'optimG': self.optimG.state_dict(),
+                'optimD': self.optimD.state_dict(),
+                'optimEnc': self.optimEnc.state_dict()
+            }
         if best: 
             name = 'net_epoch_best.pth'
         else:
-            name = 'net_%depoch.pth' % epoch
+            name = 'net_%04depoch.pth' % self.epoch
+            oldname = 'net_%04depoch.pth' % (self.epoch - 5)
+            if os.path.exists(os.path.join(self.root, oldname)):
+                os.remove(os.path.join(self.root, oldname))
+                print(oldname, ' Removed. ')
         torch.save(state, os.path.join(self.root, name))
         
     def load_checkpoint(self):
         checkpoint = torch.load(os.path.join(self.root, 'net_epoch_best.pth'))
-        self.G.load_state_dict(checkpoint['G'])
-        self.D.load_state_dict(checkpoint['D'])
-        self.Encoder.load_state_dict(checkpoint['Enc'])
+        if self.multiGPU:
+            self.G.module.load_state_dict(checkpoint['G'])
+            self.D.module.load_state_dict(checkpoint['D'])
+            self.Encoder.module.load_state_dict(checkpoint['Enc'])
+        else:
+            self.G.load_state_dict(checkpoint['G'])
+            self.D.load_state_dict(checkpoint['D'])
+            self.Encoder.load_state_dict(checkpoint['Enc'])
         self.optimG.load_state_dict(checkpoint['optimG'])
         self.optimD.load_state_dict(checkpoint['optimD'])
         self.optimEnc.load_state_dict(checkpoint['optimEnc'])
         self.iteration = checkpoint['iter']
-        print("pretrained model loaded")
+        self.epoch = checkpoint['epoch']
+        print("pretrained model loaded, iteration: ", self.iteration)
 
 if __name__ == '__main__':
-    spec = vaegan(opt)
+    spec = vaegan(opt, multiGPU=opt.multigpu)
     # input = torch.randn([1, 3, 128, 128]).cuda()
     # label = torch.randn([1, 31, 128, 128]).cuda()
     
     # recon, mu0, log_var0, mu1, log_var1, mu2, log_var2 = spec.vae_recon(input, label)
     # print(recon.shape)
     
-    spec.load_checkpoint()
+    # try:
+    #     spec.load_checkpoint()
+    # except:
+    #     print('failed to load trained model')
     spec.train()

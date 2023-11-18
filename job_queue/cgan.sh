@@ -9,11 +9,11 @@
 ### -- specify that the cores must be on the same host --
 #BSUB -R "span[hosts=1]"
 ### -- Select the resources: 1 gpu in exclusive process mode --
-#BSUB -gpu "num=2:mode=exclusive_process"
+#BSUB -gpu "num=1:mode=exclusive_process"
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
 #BSUB -W 24:00
 # request 100GB of system-memory
-#BSUB -R "rusage[mem=100GB]"
+#BSUB -R "rusage[mem=20GB]"
 ### -- set the email address --
 # please uncomment the following line and put in your e-mail address,
 # if you want to receive e-mail notifications on a non-default address
@@ -29,6 +29,7 @@
 # -- end of LSF options --
 
 nvidia-smi
+export CUDA_VISIBLE_DEVICES=0,1
 
 # Load modules
 module load cuda/11.8

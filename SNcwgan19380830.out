@@ -1,0 +1,124 @@
+Sat Nov 18 11:10:12 2023       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.104.12             Driver Version: 535.104.12   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA A100-PCIE-40GB          On  | 00000000:37:00.0 Off |                    0 |
+| N/A   24C    P0              31W / 250W |      4MiB / 40960MiB |      0%   E. Process |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+pretrained model loaded, iteration:  232800
+
+loading dataset ...
+finish:  001.mat
+finish:  002.mat
+finish:  003.mat
+finish:  004.mat
+finish:  005.mat
+finish:  006.mat
+finish:  007.mat
+finish:  008.mat
+finish:  009.mat
+finish:  010.mat
+finish:  011.mat
+finish:  012.mat
+finish:  013.mat
+finish:  014.mat
+finish:  015.mat
+finish:  016.mat
+finish:  017.mat
+finish:  018.mat
+finish:  019.mat
+finish:  020.mat
+finish:  021.mat
+finish:  022.mat
+finish:  023.mat
+finish:  024.mat
+finish:  025.mat
+finish:  026.mat
+finish:  027.mat
+finish:  028.mat
+finish:  029.mat
+finish:  030.mat
+finish:  031.mat
+finish:  032.mat
+finish:  033.mat
+finish:  034.mat
+finish:  035.mat
+finish:  036.mat
+finish:  037.mat
+finish:  038.mat
+finish:  039.mat
+finish:  040.mat
+finish:  041.mat
+finish:  042.mat
+finish:  043.mat
+finish:  044.mat
+finish:  045.mat
+finish:  046.mat
+finish:  047.mat
+finish:  048.mat
+finish:  049.mat
+finish:  050.mat
+finish:  051.mat
+finish:  052.mat
+finish:  053.mat
+finish:  054.mat
+finish:  055.mat
+finish:  056.mat
+finish:  057.mat
+finish:  058.mat
+finish:  059.mat
+finish:  060.mat
+finish:  061.mat
+finish:  062.mat
+finish:  063.mat
+finish:  064.mat
+finish:  065.mat
+finish:  066.mat
+finish:  067.mat
+finish:  068.mat
+finish:  069.mat
+finish:  070.mat
+finish:  071.mat
+finish:  072.mat
+finish:  073.mat
+finish:  074.mat
+finish:  075.mat
+finish:  076.mat
+finish:  077.mat
+finish:  078.mat
+finish:  079.mat
+finish:  080.mat
+finish:  081.mat
+finish:  082.mat
+finish:  083.mat
+finish:  084.mat
+finish:  085.mat
+finish:  086.mat
+finish:  087.mat
+finish:  088.mat
+finish:  089.mat
+finish:  090.mat
+finish:  091.mat
+finish:  092.mat
+finish:  093.mat
+finish:  094.mat
+finish:  095.mat
+finish:  096.mat
+finish:  097.mat
+finish:  098.mat
+finish:  099.mat
+finish:  100.mat
+finish:  101.mat

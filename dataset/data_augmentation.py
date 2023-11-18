@@ -10,7 +10,7 @@ from torch.autograd import Variable
 import os
 import torch
 import torch.nn as nn
-from options import opt
+# from options import opt
 import scipy.io
 import re
 import matplotlib.pyplot as plt
@@ -70,33 +70,86 @@ def cross_validation_dataset(path, test_size, imsize):
         test_sets.append(get_dataset(crossvaltestlists[i], imsize))
     return train_sets, test_sets
 
-def get_dataset(list, imsize):
-    specs, rgbs = get_all_mats(list, imsize)
+def get_dataset(path, list, imsize):
+    specs, rgbs = get_all_mats(path, list, imsize)
     return specs, rgbs
 
-def split_train_test(path, test_size, imsize):
+def split_train(path, valid_ratio, test_ratio, imsize):
     filelist = os.listdir(path)
     filelist.sort()
-    assert len(filelist) > test_size
     reg = re.compile(r'.*.mat')
     matlist = []
     for file in filelist:
         if re.match(reg, file):
             matlist.append(file)
     all_length = len(matlist)
-    train_size = all_length - test_size
+    test_size = int(all_length * test_ratio)
+    valid_size = int(all_length * valid_ratio)
+    train_size = all_length - test_size - valid_size
     matlist.sort()
     trainlist = []
+    validlist = []
     testlist = []
     for i in range(train_size):
         trainlist.append(matlist[i])
-    for j in range(test_size):
-        testlist.append(matlist[j + train_size])
-    train_sets = get_dataset(trainlist, imsize)
-    test_sets = get_dataset(testlist, imsize)
-    return train_sets, test_sets
+    for j in range(valid_size):
+        validlist.append(matlist[j + train_size])
+    for k in range(test_size):
+        testlist.append(matlist[k + train_size + valid_size])
+    train_sets = get_dataset(path, trainlist, imsize)
+    return train_sets
 
-def get_all_mats(filelist, imsize):
+def split_test(path, valid_ratio, test_ratio, imsize):
+    filelist = os.listdir(path)
+    filelist.sort()
+    reg = re.compile(r'.*.mat')
+    matlist = []
+    for file in filelist:
+        if re.match(reg, file):
+            matlist.append(file)
+    all_length = len(matlist)
+    test_size = int(all_length * test_ratio)
+    valid_size = int(all_length * valid_ratio)
+    train_size = all_length - test_size - valid_size
+    matlist.sort()
+    trainlist = []
+    validlist = []
+    testlist = []
+    for i in range(train_size):
+        trainlist.append(matlist[i])
+    for j in range(valid_size):
+        validlist.append(matlist[j + train_size])
+    for k in range(test_size):
+        testlist.append(matlist[k + train_size + valid_size])
+    test_sets = get_dataset(path, testlist, imsize)
+    return test_sets
+
+def split_valid(path, valid_ratio, test_ratio, imsize):
+    filelist = os.listdir(path)
+    filelist.sort()
+    reg = re.compile(r'.*.mat')
+    matlist = []
+    for file in filelist:
+        if re.match(reg, file):
+            matlist.append(file)
+    all_length = len(matlist)
+    test_size = int(all_length * test_ratio)
+    valid_size = int(all_length * valid_ratio)
+    train_size = all_length - test_size - valid_size
+    matlist.sort()
+    trainlist = []
+    validlist = []
+    testlist = []
+    for i in range(train_size):
+        trainlist.append(matlist[i])
+    for j in range(valid_size):
+        validlist.append(matlist[j + train_size])
+    for k in range(test_size):
+        testlist.append(matlist[k + train_size + valid_size])
+    valid_sets = get_dataset(path, validlist, imsize)
+    return valid_sets
+
+def get_all_mats(path, filelist, imsize):
     specs = []
     rgbs = []
     for file in filelist:
@@ -105,16 +158,12 @@ def get_all_mats(filelist, imsize):
         specs += spec
         rgbs += rgb
         # break
-        newmat = {}
-        newmat['cube'] = spec
-        newmat['rgb'] = rgb
-        scipy.io.savemat('/work3/s212645/ARAD/'+file, newmat)
         print('finish: ', file)
     return specs, rgbs
     
 def Resize(hyper, rgb, h, w):
-    hyper_s = cv2.resize(hyper, [h, w])
-    rgb_s = cv2.resize(rgb, [h, w])
+    hyper_s = cv2.resize(hyper, [h, w], interpolation = cv2.INTER_LINEAR)
+    rgb_s = cv2.resize(rgb, [h, w], interpolation = cv2.INTER_LINEAR)
     return hyper_s, rgb_s
 
 def data_resize(mat, imsize):
@@ -164,10 +213,7 @@ def get_all_patches(mat, imsize):
     return spectrals, rgbs
 
 if __name__ == '__main__':
-    path = root + datanames[1]
-    # spectral_images, rgb_images = get_all_mats(path, 128)
-    # print(len(rgb_images))
-    # print(rgb_images[-1].shape)
-    train_sets, test_sets = split_train_test(path, 5, 128)
+    path = root + datanames[2]
+    train_sets = split_train(path, 15, 128)
     print(len(train_sets[0]))
     print(sys.getsizeof(train_sets[0])/1024/1024)

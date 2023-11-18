@@ -9,3 +9,5 @@ bnvtop JOBID
 # get quota: 
 getquota_zhome.sh
 getquota_work3.sh
+
+python -u -m torch.distributed.launch --use-env Models/GAN/D2GAN.py --multigpu --loadmodel --batch_size 256
