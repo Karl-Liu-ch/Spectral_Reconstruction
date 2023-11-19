@@ -25,7 +25,7 @@ if opt.multigpu:
     local_rank = int(os.environ["LOCAL_RANK"])
     torch.cuda.set_device(local_rank)
 else:
-    os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+    os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # loss function
