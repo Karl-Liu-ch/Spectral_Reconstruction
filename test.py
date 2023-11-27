@@ -15,6 +15,8 @@ import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from Models.GAN.SNcwgan import SNCWGAN
+from Models.GAN.D2GAN import D2GAN
+from Models.GAN.SNcwganDenseNet import SNCWGANDenseNet
 import functools
 import numpy as np
 import scipy.io
@@ -97,3 +99,4 @@ if __name__ == '__main__':
     mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model)
     print(mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb)
     # mrad:0.4860 rmse:0.0653 psnr:23.8645 sam:0.1173 sid:0.0006 fid:105.5602 ssim:0.7992 psnrrgb:16.7894
+    # mrad:0.1991 rmse:0.0421 psnr:32.3365 sam:0.0642) sid:nan fid:48.3156 ssim:0.6685 psnrrgb:11.4004

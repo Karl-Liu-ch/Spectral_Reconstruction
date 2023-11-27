@@ -41,4 +41,5 @@ conda activate pytorch
 
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u -m torch.distributed.launch --use-env Models/GAN/SNcwgan.py --multigpu --loadmodel
+# python -u -m torch.distributed.launch --use-env Models/GAN/SNcwgan.py --multigpu --loadmodel --batch_size 128
+python -u Models/GAN/SNcwgan.py --loadmodel --batch_size 256
