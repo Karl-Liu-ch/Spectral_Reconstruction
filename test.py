@@ -41,14 +41,22 @@ criterion_sid = Loss_SID()
 criterion_fid = Loss_Fid().cuda()
 criterion_ssim = Loss_SSIM().cuda()
 
+def normalize(input):
+    return (input - input.min()) / (input.max() - input.min())
+
 try: 
     os.mkdir('/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/')
     os.mkdir('/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/')
 except:
     pass
 
-def test(Model):
-    root = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/'
+def test(Model, modelname, noise = False):
+    root = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/' + modelname + '/'
+    try: 
+        os.mkdir('/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/')
+        os.mkdir('/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/' + modelname + '/')
+    except:
+        pass
     test_data = TestDataset(data_root=opt.data_root, crop_size=opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
     print("Test set samples: ", len(test_data))
     test_loader = DataLoader(dataset=test_data, batch_size=opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
@@ -64,9 +72,12 @@ def test(Model):
     for i, (input, target) in enumerate(test_loader):
         input = input.cuda()
         target = target.cuda()
-        z = torch.randn_like(input).cuda()
-        z = torch.concat([z, input], dim=1)
-        z = Variable(z)
+        if noise:
+            z = torch.randn_like(input).cuda()
+            z = torch.concat([z, input], dim=1)
+            z = Variable(z)
+        else:
+            z = input
         with torch.no_grad():
             # compute output
             output = Model.G(z)
@@ -78,7 +89,7 @@ def test(Model):
                 real = (real - real.min()) / (real.max()-real.min())
                 mat['rgb'] = real
                 scipy.io.savemat(root + str(i * output.shape[0] + j).zfill(3) + '.mat', mat)
-                SaveSpectral(output[j,:,:,:], i * output.shape[0] + j)
+                SaveSpectral(output[j,:,:,:], i * output.shape[0] + j, root='/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/')
                 print(i * output.shape[0] + j, 'saved')
             loss_mrae = criterion_mrae(output, target)
             loss_rmse = criterion_rmse(output, target)
@@ -86,6 +97,8 @@ def test(Model):
             loss_sam = criterion_sam(output, target)
             loss_sid = criterion_sid(output, target)
             rgb = reconRGB(output)
+            input = normalize(input)
+            rgb = normalize(rgb)
             loss_fid = criterion_fid(rgb, input)
             loss_ssim = criterion_ssim(rgb, input)
             loss_psrnrgb = criterion_psnrrgb(rgb, input)
@@ -108,7 +121,7 @@ if __name__ == '__main__':
     f = open(file, 'a')
     model = SNCWGANDenseNet(opt)
     model.load_checkpoint()
-    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model)
+    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, 'SNCWGANDenseNet', noise=True)
     print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
     f.write('SNCWGANDenseNet:\n')
     f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
@@ -116,7 +129,7 @@ if __name__ == '__main__':
     
     model = SNCWGANNoNoise(opt)
     model.load_checkpoint()
-    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model)
+    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, 'SNCWGANNoNoise', noise=False)
     print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
     f.write('SNCWGANNoNoise:\n')
     f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
