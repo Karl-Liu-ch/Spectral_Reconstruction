@@ -30,16 +30,16 @@
 # -- end of LSF options --
 
 nvidia-smi
-export CUDA_VISIBLE_DEVICES=0,1
+# export CUDA_VISIBLE_DEVICES=0,1
 
 # Load modules
 module load cuda/11.8
-# module load cudnn/v8.8.0-prod-cuda-11.X
+module load cudnn/v8.9.1.23-prod-cuda-11.X 
 cd /zhome/02/b/164706/
 source ./miniconda3/bin/activate
 conda activate pytorch
 
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-# python -u -m torch.distributed.launch --use-env Models/GAN/SNcwganNZ.py --multigpu --loadmodel --batch_size 128
-python -u Models/GAN/SNcwganNZ.py --batch_size 32  --loadmodel
+# python -u -m torch.distributed.launch --use-env Models/GAN/SNcwganNZ.py --multigpu --loadmodel --batch_size 128 --gpu_id 0,1
+python -u Models/GAN/SNcwganNZ.py --batch_size 48  --loadmodel --gpu_id 0

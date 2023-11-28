@@ -17,17 +17,18 @@ from torch.autograd import Variable
 from Models.GAN.SNcwgan import SNCWGAN
 from Models.GAN.D2GAN import D2GAN
 from Models.GAN.SNcwganDenseNet import SNCWGANDenseNet
+from Models.GAN.SNcwganNZ import SNCWGANNoNoise
 import functools
 import numpy as np
 import scipy.io
 
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
-    os.environ["CUDA_VISIBLE_DEVICES"] = '0,1'
+    os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
     local_rank = int(os.environ["LOCAL_RANK"])
     torch.cuda.set_device(local_rank)
 else:
-    os.environ["CUDA_VISIBLE_DEVICES"] = '1'
+    os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # loss function
@@ -40,10 +41,16 @@ criterion_sid = Loss_SID()
 criterion_fid = Loss_Fid().cuda()
 criterion_ssim = Loss_SSIM().cuda()
 
+try: 
+    os.mkdir('/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/')
+    os.mkdir('/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/')
+except:
+    pass
+
 def test(Model):
     root = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/'
     test_data = TestDataset(data_root=opt.data_root, crop_size=opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
-    print("Validation set samples: ", len(test_data))
+    print("Test set samples: ", len(test_data))
     test_loader = DataLoader(dataset=test_data, batch_size=opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
     Model.G.eval()
     losses_mrae = AverageMeter()
@@ -94,9 +101,21 @@ def test(Model):
     return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg, losses_fid.avg, losses_ssim.avg, losses_psnrrgb.avg
 
 if __name__ == '__main__':
-    model = SNCWGAN(opt)
+    file = 'result.txt'
+    f = open(file, 'a')
+    model = SNCWGANDenseNet(opt)
     model.load_checkpoint()
     mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model)
-    print(mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb)
-    # mrad:0.4860 rmse:0.0653 psnr:23.8645 sam:0.1173 sid:0.0006 fid:105.5602 ssim:0.7992 psnrrgb:16.7894
-    # mrad:0.1991 rmse:0.0421 psnr:32.3365 sam:0.0642) sid:nan fid:48.3156 ssim:0.6685 psnrrgb:11.4004
+    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write('SNCWGANDenseNet:\n')
+    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write('\n')
+    
+    model = SNCWGANNoNoise(opt)
+    model.load_checkpoint()
+    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model)
+    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write('SNCWGANNoNoise:\n')
+    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write('\n')
+    f.close()
