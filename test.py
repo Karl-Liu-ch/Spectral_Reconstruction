@@ -74,6 +74,9 @@ def test(Model):
                 mat = {}
                 mat['cube'] = np.transpose(output[j,:,:,:].cpu().numpy(), [1,2,0])
                 mat['rgb'] = np.transpose(input[j,:,:,:].cpu().numpy(), [1,2,0])
+                real = mat['rgb']
+                real = (real - real.min()) / (real.max()-real.min())
+                mat['rgb'] = real
                 scipy.io.savemat(root + str(i * output.shape[0] + j).zfill(3) + '.mat', mat)
                 SaveSpectral(output[j,:,:,:], i * output.shape[0] + j)
                 print(i * output.shape[0] + j, 'saved')
