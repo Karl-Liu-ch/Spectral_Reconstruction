@@ -119,19 +119,21 @@ def test(Model, modelname, noise = False):
 if __name__ == '__main__':
     file = 'result.txt'
     f = open(file, 'a')
-    model = SNCWGANDenseNet(opt)
+    modelname = 'SNCWGANNoNoise'
+    model = SNCWGANNoNoise(opt)
     model.load_checkpoint()
-    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, 'SNCWGANDenseNet', noise=True)
+    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=False)
     print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write('SNCWGANDenseNet:\n')
+    f.write(modelname+':\n')
     f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
     f.write('\n')
     
-    model = SNCWGANNoNoise(opt)
-    model.load_checkpoint()
-    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, 'SNCWGANNoNoise', noise=False)
-    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write('SNCWGANNoNoise:\n')
-    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write('\n')
-    f.close()
+    # modelname = 'D2GAN'
+    # model = D2GAN(opt)
+    # model.load_checkpoint()
+    # mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
+    # print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    # f.write(modelname+':\n')
+    # f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    # f.write('\n')
+    # f.close()
