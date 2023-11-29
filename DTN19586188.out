@@ -1,0 +1,2331 @@
+Wed Nov 29 14:41:57 2023       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.104.12             Driver Version: 535.104.12   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA A100 80GB PCIe          On  | 00000000:65:00.0 Off |                    0 |
+| N/A   44C    P0              46W / 300W |      4MiB / 81920MiB |      0%   E. Process |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+[Warning] Fused window process have not been installed. Please refer to get_started.md for installation.
+pretrained model loaded, iteration:  307296
+
+loading dataset ...
+finish:  001.mat
+finish:  002.mat
+finish:  003.mat
+finish:  004.mat
+finish:  005.mat
+finish:  006.mat
+finish:  007.mat
+finish:  008.mat
+finish:  009.mat
+finish:  010.mat
+finish:  011.mat
+finish:  012.mat
+finish:  013.mat
+finish:  014.mat
+finish:  015.mat
+finish:  016.mat
+finish:  017.mat
+finish:  018.mat
+finish:  019.mat
+finish:  020.mat
+finish:  021.mat
+finish:  022.mat
+finish:  023.mat
+finish:  024.mat
+finish:  025.mat
+finish:  026.mat
+finish:  027.mat
+finish:  028.mat
+finish:  029.mat
+finish:  030.mat
+finish:  031.mat
+finish:  032.mat
+finish:  033.mat
+finish:  034.mat
+finish:  035.mat
+finish:  036.mat
+finish:  037.mat
+finish:  038.mat
+finish:  039.mat
+finish:  040.mat
+finish:  041.mat
+finish:  042.mat
+finish:  043.mat
+finish:  044.mat
+finish:  045.mat
+finish:  046.mat
+finish:  047.mat
+finish:  048.mat
+finish:  049.mat
+finish:  050.mat
+finish:  051.mat
+finish:  052.mat
+finish:  053.mat
+finish:  054.mat
+finish:  055.mat
+finish:  056.mat
+finish:  057.mat
+finish:  058.mat
+finish:  059.mat
+finish:  060.mat
+finish:  061.mat
+finish:  062.mat
+finish:  063.mat
+finish:  064.mat
+finish:  065.mat
+finish:  066.mat
+finish:  067.mat
+finish:  068.mat
+finish:  069.mat
+finish:  070.mat
+finish:  071.mat
+finish:  072.mat
+finish:  073.mat
+finish:  074.mat
+finish:  075.mat
+finish:  076.mat
+finish:  077.mat
+finish:  078.mat
+finish:  079.mat
+finish:  080.mat
+finish:  081.mat
+finish:  082.mat
+finish:  083.mat
+finish:  084.mat
+finish:  085.mat
+finish:  086.mat
+finish:  087.mat
+finish:  088.mat
+finish:  089.mat
+finish:  090.mat
+finish:  091.mat
+finish:  092.mat
+finish:  093.mat
+finish:  094.mat
+finish:  095.mat
+finish:  096.mat
+finish:  097.mat
+finish:  098.mat
+finish:  099.mat
+finish:  100.mat
+finish:  101.mat
+finish:  102.mat
+finish:  103.mat
+finish:  104.mat
+finish:  105.mat
+finish:  106.mat
+finish:  107.mat
+finish:  108.mat
+finish:  109.mat
+finish:  110.mat
+finish:  111.mat
+finish:  112.mat
+finish:  113.mat
+finish:  114.mat
+finish:  115.mat
+finish:  116.mat
+finish:  117.mat
+finish:  118.mat
+finish:  119.mat
+finish:  120.mat
+finish:  121.mat
+finish:  122.mat
+finish:  123.mat
+finish:  124.mat
+finish:  125.mat
+finish:  126.mat
+finish:  127.mat
+finish:  128.mat
+finish:  129.mat
+finish:  130.mat
+finish:  131.mat
+finish:  132.mat
+finish:  133.mat
+finish:  134.mat
+finish:  135.mat
+finish:  136.mat
+finish:  137.mat
+finish:  138.mat
+finish:  139.mat
+finish:  140.mat
+finish:  141.mat
+finish:  142.mat
+finish:  143.mat
+finish:  144.mat
+finish:  145.mat
+finish:  146.mat
+finish:  147.mat
+finish:  148.mat
+finish:  149.mat
+finish:  150.mat
+finish:  151.mat
+finish:  152.mat
+finish:  153.mat
+finish:  154.mat
+finish:  155.mat
+finish:  156.mat
+finish:  157.mat
+finish:  158.mat
+finish:  159.mat
+finish:  160.mat
+finish:  161.mat
+finish:  162.mat
+finish:  163.mat
+finish:  164.mat
+finish:  165.mat
+finish:  166.mat
+finish:  167.mat
+finish:  168.mat
+finish:  169.mat
+finish:  170.mat
+finish:  171.mat
+finish:  172.mat
+finish:  173.mat
+finish:  174.mat
+finish:  175.mat
+finish:  176.mat
+finish:  177.mat
+finish:  178.mat
+finish:  179.mat
+finish:  180.mat
+finish:  181.mat
+finish:  182.mat
+finish:  183.mat
+finish:  184.mat
+finish:  185.mat
+finish:  186.mat
+finish:  187.mat
+finish:  188.mat
+finish:  189.mat
+finish:  190.mat
+finish:  191.mat
+finish:  192.mat
+finish:  193.mat
+finish:  194.mat
+finish:  195.mat
+finish:  196.mat
+finish:  197.mat
+finish:  198.mat
+finish:  199.mat
+finish:  200.mat
+finish:  201.mat
+finish:  202.mat
+finish:  203.mat
+finish:  204.mat
+finish:  205.mat
+finish:  206.mat
+finish:  207.mat
+finish:  208.mat
+finish:  209.mat
+finish:  001.mat
+finish:  002.mat
+finish:  003.mat
+finish:  004.mat
+finish:  005.mat
+finish:  006.mat
+finish:  007.mat
+finish:  008.mat
+finish:  009.mat
+finish:  010.mat
+finish:  011.mat
+finish:  012.mat
+finish:  013.mat
+finish:  014.mat
+finish:  015.mat
+finish:  016.mat
+finish:  017.mat
+finish:  018.mat
+finish:  019.mat
+finish:  020.mat
+finish:  021.mat
+finish:  022.mat
+finish:  023.mat
+finish:  024.mat
+finish:  025.mat
+finish:  026.mat
+finish:  027.mat
+finish:  028.mat
+finish:  029.mat
+finish:  030.mat
+finish:  031.mat
+finish:  032.mat
+finish:  033.mat
+finish:  034.mat
+finish:  035.mat
+finish:  036.mat
+finish:  037.mat
+finish:  038.mat
+finish:  039.mat
+finish:  040.mat
+finish:  041.mat
+finish:  042.mat
+finish:  043.mat
+finish:  044.mat
+finish:  045.mat
+finish:  046.mat
+finish:  047.mat
+finish:  048.mat
+finish:  049.mat
+finish:  050.mat
+finish:  051.mat
+finish:  052.mat
+finish:  053.mat
+finish:  054.mat
+finish:  055.mat
+finish:  056.mat
+finish:  057.mat
+finish:  058.mat
+finish:  059.mat
+finish:  060.mat
+finish:  061.mat
+finish:  062.mat
+finish:  063.mat
+finish:  064.mat
+finish:  065.mat
+finish:  066.mat
+finish:  067.mat
+finish:  068.mat
+finish:  069.mat
+finish:  070.mat
+finish:  071.mat
+finish:  072.mat
+finish:  073.mat
+finish:  074.mat
+finish:  075.mat
+finish:  076.mat
+finish:  077.mat
+finish:  078.mat
+finish:  079.mat
+finish:  080.mat
+finish:  081.mat
+finish:  082.mat
+finish:  083.mat
+finish:  084.mat
+finish:  085.mat
+finish:  086.mat
+finish:  087.mat
+finish:  088.mat
+finish:  089.mat
+finish:  090.mat
+finish:  091.mat
+finish:  092.mat
+finish:  093.mat
+finish:  094.mat
+finish:  095.mat
+finish:  096.mat
+finish:  097.mat
+finish:  098.mat
+finish:  099.mat
+finish:  100.mat
+finish:  101.mat
+finish:  102.mat
+finish:  103.mat
+finish:  104.mat
+finish:  105.mat
+finish:  106.mat
+finish:  107.mat
+finish:  108.mat
+finish:  109.mat
+finish:  110.mat
+finish:  111.mat
+finish:  112.mat
+finish:  113.mat
+finish:  114.mat
+finish:  115.mat
+finish:  116.mat
+finish:  117.mat
+finish:  118.mat
+finish:  119.mat
+finish:  120.mat
+finish:  121.mat
+finish:  122.mat
+finish:  123.mat
+finish:  124.mat
+finish:  125.mat
+finish:  126.mat
+finish:  127.mat
+finish:  128.mat
+finish:  129.mat
+finish:  130.mat
+finish:  131.mat
+finish:  132.mat
+finish:  133.mat
+finish:  134.mat
+finish:  135.mat
+finish:  136.mat
+finish:  137.mat
+finish:  138.mat
+finish:  139.mat
+finish:  140.mat
+finish:  141.mat
+finish:  142.mat
+finish:  143.mat
+finish:  144.mat
+finish:  145.mat
+finish:  146.mat
+finish:  147.mat
+finish:  148.mat
+finish:  149.mat
+finish:  150.mat
+finish:  151.mat
+finish:  152.mat
+finish:  153.mat
+finish:  154.mat
+finish:  155.mat
+finish:  156.mat
+finish:  157.mat
+finish:  158.mat
+finish:  159.mat
+finish:  160.mat
+finish:  161.mat
+finish:  162.mat
+finish:  163.mat
+finish:  164.mat
+finish:  165.mat
+finish:  166.mat
+finish:  167.mat
+finish:  168.mat
+finish:  169.mat
+finish:  170.mat
+finish:  171.mat
+finish:  172.mat
+finish:  173.mat
+finish:  174.mat
+finish:  175.mat
+finish:  176.mat
+finish:  177.mat
+finish:  178.mat
+finish:  179.mat
+finish:  180.mat
+finish:  181.mat
+finish:  182.mat
+finish:  183.mat
+finish:  184.mat
+finish:  185.mat
+finish:  186.mat
+finish:  187.mat
+finish:  188.mat
+finish:  189.mat
+finish:  190.mat
+finish:  191.mat
+finish:  192.mat
+finish:  193.mat
+finish:  194.mat
+finish:  195.mat
+finish:  196.mat
+finish:  197.mat
+finish:  198.mat
+finish:  199.mat
+finish:  200.mat
+finish:  201.mat
+finish:  202.mat
+finish:  203.mat
+finish:  204.mat
+finish:  205.mat
+finish:  206.mat
+finish:  207.mat
+finish:  208.mat
+finish:  209.mat
+finish:  210.mat
+finish:  211.mat
+finish:  212.mat
+finish:  213.mat
+finish:  214.mat
+finish:  215.mat
+finish:  216.mat
+finish:  217.mat
+finish:  218.mat
+finish:  219.mat
+finish:  220.mat
+finish:  221.mat
+finish:  222.mat
+finish:  223.mat
+finish:  224.mat
+finish:  225.mat
+finish:  226.mat
+finish:  227.mat
+finish:  228.mat
+finish:  229.mat
+finish:  230.mat
+finish:  231.mat
+finish:  232.mat
+finish:  233.mat
+finish:  234.mat
+finish:  235.mat
+finish:  236.mat
+finish:  237.mat
+finish:  238.mat
+finish:  239.mat
+finish:  240.mat
+finish:  241.mat
+finish:  242.mat
+finish:  243.mat
+finish:  244.mat
+finish:  245.mat
+finish:  246.mat
+finish:  247.mat
+finish:  248.mat
+finish:  249.mat
+finish:  250.mat
+finish:  251.mat
+finish:  252.mat
+finish:  253.mat
+finish:  254.mat
+finish:  255.mat
+finish:  256.mat
+finish:  257.mat
+finish:  258.mat
+finish:  259.mat
+finish:  260.mat
+finish:  261.mat
+finish:  262.mat
+finish:  263.mat
+finish:  264.mat
+finish:  265.mat
+finish:  266.mat
+finish:  267.mat
+finish:  268.mat
+finish:  269.mat
+finish:  270.mat
+finish:  271.mat
+finish:  272.mat
+finish:  273.mat
+finish:  274.mat
+finish:  275.mat
+finish:  276.mat
+finish:  277.mat
+finish:  278.mat
+finish:  279.mat
+finish:  280.mat
+finish:  281.mat
+finish:  282.mat
+finish:  283.mat
+finish:  284.mat
+finish:  285.mat
+finish:  286.mat
+finish:  287.mat
+finish:  288.mat
+finish:  289.mat
+finish:  290.mat
+finish:  291.mat
+finish:  292.mat
+finish:  293.mat
+finish:  294.mat
+finish:  295.mat
+finish:  296.mat
+finish:  297.mat
+finish:  298.mat
+finish:  299.mat
+finish:  300.mat
+finish:  301.mat
+finish:  302.mat
+finish:  303.mat
+finish:  304.mat
+finish:  305.mat
+finish:  306.mat
+finish:  307.mat
+finish:  308.mat
+finish:  309.mat
+finish:  310.mat
+finish:  311.mat
+finish:  312.mat
+finish:  313.mat
+finish:  314.mat
+finish:  315.mat
+finish:  316.mat
+finish:  317.mat
+finish:  318.mat
+finish:  319.mat
+finish:  320.mat
+finish:  321.mat
+finish:  322.mat
+finish:  323.mat
+finish:  324.mat
+finish:  325.mat
+finish:  326.mat
+finish:  327.mat
+finish:  328.mat
+finish:  329.mat
+finish:  330.mat
+finish:  331.mat
+finish:  332.mat
+finish:  333.mat
+finish:  334.mat
+finish:  335.mat
+finish:  336.mat
+finish:  337.mat
+finish:  338.mat
+finish:  339.mat
+finish:  340.mat
+finish:  341.mat
+finish:  342.mat
+finish:  343.mat
+finish:  344.mat
+finish:  345.mat
+finish:  346.mat
+finish:  347.mat
+finish:  348.mat
+finish:  349.mat
+finish:  350.mat
+finish:  351.mat
+finish:  352.mat
+finish:  353.mat
+finish:  354.mat
+finish:  355.mat
+finish:  356.mat
+finish:  357.mat
+finish:  358.mat
+finish:  359.mat
+finish:  360.mat
+finish:  361.mat
+finish:  362.mat
+finish:  363.mat
+finish:  364.mat
+finish:  365.mat
+finish:  366.mat
+finish:  367.mat
+finish:  368.mat
+finish:  369.mat
+finish:  370.mat
+finish:  371.mat
+finish:  372.mat
+finish:  373.mat
+finish:  374.mat
+finish:  375.mat
+finish:  376.mat
+finish:  377.mat
+finish:  378.mat
+finish:  379.mat
+finish:  380.mat
+finish:  381.mat
+finish:  382.mat
+finish:  383.mat
+finish:  384.mat
+finish:  385.mat
+finish:  386.mat
+finish:  387.mat
+finish:  388.mat
+finish:  389.mat
+finish:  390.mat
+finish:  391.mat
+finish:  392.mat
+finish:  393.mat
+finish:  394.mat
+finish:  395.mat
+finish:  396.mat
+finish:  397.mat
+finish:  398.mat
+finish:  399.mat
+finish:  400.mat
+finish:  401.mat
+finish:  402.mat
+finish:  403.mat
+finish:  404.mat
+finish:  405.mat
+finish:  406.mat
+finish:  407.mat
+finish:  408.mat
+finish:  409.mat
+finish:  410.mat
+finish:  411.mat
+finish:  412.mat
+finish:  413.mat
+finish:  414.mat
+finish:  415.mat
+finish:  416.mat
+finish:  417.mat
+finish:  418.mat
+finish:  419.mat
+finish:  420.mat
+finish:  421.mat
+finish:  422.mat
+finish:  423.mat
+finish:  424.mat
+finish:  425.mat
+finish:  426.mat
+finish:  427.mat
+finish:  428.mat
+finish:  429.mat
+finish:  430.mat
+finish:  431.mat
+finish:  432.mat
+finish:  433.mat
+finish:  434.mat
+finish:  435.mat
+finish:  436.mat
+finish:  437.mat
+finish:  438.mat
+finish:  439.mat
+finish:  440.mat
+finish:  441.mat
+finish:  442.mat
+finish:  443.mat
+finish:  444.mat
+finish:  445.mat
+finish:  446.mat
+finish:  447.mat
+finish:  448.mat
+finish:  449.mat
+finish:  450.mat
+finish:  451.mat
+finish:  452.mat
+finish:  453.mat
+finish:  454.mat
+finish:  455.mat
+finish:  456.mat
+finish:  457.mat
+finish:  458.mat
+finish:  459.mat
+finish:  460.mat
+finish:  461.mat
+finish:  462.mat
+finish:  463.mat
+finish:  464.mat
+finish:  465.mat
+finish:  466.mat
+finish:  467.mat
+finish:  468.mat
+finish:  469.mat
+finish:  470.mat
+finish:  471.mat
+finish:  472.mat
+finish:  473.mat
+finish:  474.mat
+finish:  475.mat
+finish:  476.mat
+finish:  477.mat
+finish:  478.mat
+finish:  479.mat
+finish:  480.mat
+finish:  481.mat
+finish:  482.mat
+finish:  483.mat
+finish:  484.mat
+finish:  485.mat
+finish:  486.mat
+finish:  487.mat
+finish:  488.mat
+finish:  489.mat
+finish:  490.mat
+finish:  491.mat
+finish:  492.mat
+finish:  493.mat
+finish:  494.mat
+finish:  495.mat
+finish:  496.mat
+finish:  497.mat
+finish:  498.mat
+finish:  499.mat
+finish:  500.mat
+finish:  501.mat
+finish:  502.mat
+finish:  503.mat
+finish:  504.mat
+finish:  505.mat
+finish:  506.mat
+finish:  507.mat
+finish:  508.mat
+finish:  509.mat
+finish:  510.mat
+finish:  511.mat
+finish:  512.mat
+finish:  513.mat
+finish:  514.mat
+finish:  515.mat
+finish:  516.mat
+finish:  517.mat
+finish:  518.mat
+finish:  519.mat
+finish:  520.mat
+finish:  521.mat
+finish:  522.mat
+finish:  523.mat
+finish:  524.mat
+finish:  525.mat
+finish:  526.mat
+finish:  527.mat
+finish:  528.mat
+finish:  529.mat
+finish:  530.mat
+finish:  531.mat
+finish:  532.mat
+finish:  533.mat
+finish:  534.mat
+finish:  535.mat
+finish:  536.mat
+finish:  537.mat
+finish:  538.mat
+finish:  539.mat
+finish:  540.mat
+finish:  541.mat
+finish:  542.mat
+finish:  543.mat
+finish:  544.mat
+finish:  545.mat
+finish:  546.mat
+finish:  547.mat
+finish:  548.mat
+finish:  549.mat
+finish:  550.mat
+finish:  551.mat
+finish:  552.mat
+finish:  553.mat
+finish:  554.mat
+finish:  555.mat
+finish:  556.mat
+finish:  557.mat
+finish:  558.mat
+finish:  559.mat
+finish:  560.mat
+finish:  561.mat
+finish:  562.mat
+finish:  563.mat
+finish:  564.mat
+finish:  565.mat
+finish:  566.mat
+finish:  567.mat
+finish:  568.mat
+finish:  569.mat
+finish:  570.mat
+finish:  571.mat
+finish:  572.mat
+finish:  573.mat
+finish:  574.mat
+finish:  575.mat
+finish:  576.mat
+finish:  577.mat
+finish:  578.mat
+finish:  579.mat
+finish:  580.mat
+finish:  581.mat
+finish:  582.mat
+finish:  583.mat
+finish:  584.mat
+finish:  585.mat
+finish:  586.mat
+finish:  587.mat
+finish:  588.mat
+finish:  589.mat
+finish:  590.mat
+finish:  591.mat
+finish:  592.mat
+finish:  593.mat
+finish:  594.mat
+finish:  595.mat
+finish:  596.mat
+finish:  597.mat
+finish:  598.mat
+finish:  599.mat
+finish:  600.mat
+finish:  601.mat
+finish:  602.mat
+finish:  603.mat
+finish:  604.mat
+finish:  605.mat
+finish:  606.mat
+finish:  607.mat
+finish:  608.mat
+finish:  609.mat
+finish:  610.mat
+finish:  611.mat
+finish:  612.mat
+finish:  613.mat
+finish:  614.mat
+finish:  615.mat
+finish:  616.mat
+finish:  617.mat
+finish:  618.mat
+finish:  619.mat
+finish:  620.mat
+finish:  621.mat
+finish:  622.mat
+finish:  623.mat
+finish:  624.mat
+finish:  625.mat
+finish:  626.mat
+finish:  627.mat
+finish:  628.mat
+finish:  629.mat
+finish:  630.mat
+finish:  631.mat
+finish:  632.mat
+finish:  633.mat
+finish:  634.mat
+finish:  635.mat
+finish:  636.mat
+finish:  637.mat
+finish:  638.mat
+finish:  639.mat
+finish:  640.mat
+finish:  641.mat
+finish:  642.mat
+finish:  643.mat
+finish:  644.mat
+finish:  645.mat
+finish:  646.mat
+finish:  647.mat
+finish:  648.mat
+finish:  649.mat
+finish:  650.mat
+finish:  651.mat
+finish:  652.mat
+finish:  653.mat
+finish:  654.mat
+finish:  655.mat
+finish:  656.mat
+finish:  657.mat
+finish:  658.mat
+finish:  659.mat
+finish:  660.mat
+finish:  661.mat
+finish:  662.mat
+finish:  663.mat
+finish:  664.mat
+finish:  665.mat
+finish:  666.mat
+finish:  667.mat
+finish:  668.mat
+finish:  669.mat
+finish:  670.mat
+finish:  671.mat
+finish:  672.mat
+finish:  673.mat
+finish:  674.mat
+finish:  675.mat
+finish:  676.mat
+finish:  677.mat
+finish:  678.mat
+finish:  679.mat
+finish:  680.mat
+finish:  681.mat
+finish:  682.mat
+finish:  683.mat
+finish:  684.mat
+finish:  685.mat
+finish:  686.mat
+finish:  687.mat
+finish:  688.mat
+finish:  689.mat
+finish:  690.mat
+finish:  691.mat
+finish:  692.mat
+finish:  693.mat
+finish:  694.mat
+finish:  695.mat
+finish:  696.mat
+finish:  697.mat
+finish:  698.mat
+finish:  699.mat
+finish:  700.mat
+finish:  701.mat
+finish:  702.mat
+finish:  703.mat
+finish:  704.mat
+finish:  705.mat
+finish:  706.mat
+finish:  707.mat
+finish:  708.mat
+finish:  709.mat
+finish:  710.mat
+finish:  711.mat
+finish:  712.mat
+finish:  713.mat
+finish:  714.mat
+finish:  715.mat
+finish:  716.mat
+finish:  717.mat
+finish:  718.mat
+finish:  719.mat
+finish:  720.mat
+finish:  721.mat
+finish:  722.mat
+finish:  723.mat
+finish:  724.mat
+finish:  725.mat
+finish:  726.mat
+finish:  727.mat
+finish:  728.mat
+finish:  729.mat
+finish:  730.mat
+finish:  731.mat
+finish:  732.mat
+finish:  733.mat
+finish:  734.mat
+finish:  735.mat
+finish:  736.mat
+finish:  737.mat
+finish:  738.mat
+finish:  739.mat
+finish:  740.mat
+finish:  741.mat
+finish:  742.mat
+finish:  743.mat
+finish:  744.mat
+finish:  745.mat
+finish:  746.mat
+finish:  747.mat
+finish:  748.mat
+finish:  749.mat
+finish:  750.mat
+finish:  751.mat
+finish:  752.mat
+finish:  753.mat
+finish:  754.mat
+finish:  755.mat
+finish:  756.mat
+finish:  757.mat
+finish:  758.mat
+finish:  759.mat
+finish:  760.mat
+Iteration per epoch: 51218
+finish:  210.mat
+finish:  211.mat
+finish:  212.mat
+finish:  213.mat
+finish:  214.mat
+finish:  215.mat
+finish:  216.mat
+finish:  217.mat
+finish:  218.mat
+finish:  219.mat
+finish:  220.mat
+finish:  221.mat
+finish:  222.mat
+finish:  223.mat
+finish:  224.mat
+finish:  225.mat
+finish:  226.mat
+finish:  227.mat
+finish:  228.mat
+finish:  229.mat
+finish:  230.mat
+finish:  231.mat
+finish:  232.mat
+finish:  233.mat
+finish:  234.mat
+finish:  235.mat
+finish:  761.mat
+finish:  762.mat
+finish:  763.mat
+finish:  764.mat
+finish:  765.mat
+finish:  766.mat
+finish:  767.mat
+finish:  768.mat
+finish:  769.mat
+finish:  770.mat
+finish:  771.mat
+finish:  772.mat
+finish:  773.mat
+finish:  774.mat
+finish:  775.mat
+finish:  776.mat
+finish:  777.mat
+finish:  778.mat
+finish:  779.mat
+finish:  780.mat
+finish:  781.mat
+finish:  782.mat
+finish:  783.mat
+finish:  784.mat
+finish:  785.mat
+finish:  786.mat
+finish:  787.mat
+finish:  788.mat
+finish:  789.mat
+finish:  790.mat
+finish:  791.mat
+finish:  792.mat
+finish:  793.mat
+finish:  794.mat
+finish:  795.mat
+finish:  796.mat
+finish:  797.mat
+finish:  798.mat
+finish:  799.mat
+finish:  800.mat
+finish:  801.mat
+finish:  802.mat
+finish:  803.mat
+finish:  804.mat
+finish:  805.mat
+finish:  806.mat
+finish:  807.mat
+finish:  808.mat
+finish:  809.mat
+finish:  810.mat
+finish:  811.mat
+finish:  812.mat
+finish:  813.mat
+finish:  814.mat
+finish:  815.mat
+finish:  816.mat
+finish:  817.mat
+finish:  818.mat
+finish:  819.mat
+finish:  820.mat
+finish:  821.mat
+finish:  822.mat
+finish:  823.mat
+finish:  824.mat
+finish:  825.mat
+finish:  826.mat
+finish:  827.mat
+finish:  828.mat
+finish:  829.mat
+finish:  830.mat
+finish:  831.mat
+finish:  832.mat
+finish:  833.mat
+finish:  834.mat
+finish:  835.mat
+finish:  836.mat
+finish:  837.mat
+finish:  838.mat
+finish:  839.mat
+finish:  840.mat
+finish:  841.mat
+finish:  842.mat
+finish:  843.mat
+finish:  844.mat
+finish:  845.mat
+finish:  846.mat
+finish:  847.mat
+finish:  848.mat
+finish:  849.mat
+finish:  850.mat
+finish:  851.mat
+finish:  852.mat
+finish:  853.mat
+finish:  854.mat
+finish:  855.mat
+Validation set samples:  6441
+finish:  236.mat
+finish:  237.mat
+finish:  238.mat
+finish:  239.mat
+finish:  240.mat
+finish:  241.mat
+finish:  242.mat
+finish:  243.mat
+finish:  244.mat
+finish:  245.mat
+finish:  246.mat
+finish:  247.mat
+finish:  248.mat
+finish:  249.mat
+finish:  250.mat
+finish:  251.mat
+finish:  252.mat
+finish:  253.mat
+finish:  254.mat
+finish:  255.mat
+finish:  256.mat
+finish:  257.mat
+finish:  258.mat
+finish:  259.mat
+finish:  260.mat
+finish:  261.mat
+finish:  856.mat
+finish:  857.mat
+finish:  858.mat
+finish:  859.mat
+finish:  860.mat
+finish:  861.mat
+finish:  862.mat
+finish:  863.mat
+finish:  864.mat
+finish:  865.mat
+finish:  866.mat
+finish:  867.mat
+finish:  868.mat
+finish:  869.mat
+finish:  870.mat
+finish:  871.mat
+finish:  872.mat
+finish:  873.mat
+finish:  874.mat
+finish:  875.mat
+finish:  876.mat
+finish:  877.mat
+finish:  878.mat
+finish:  879.mat
+finish:  880.mat
+finish:  881.mat
+finish:  882.mat
+finish:  883.mat
+finish:  884.mat
+finish:  885.mat
+finish:  886.mat
+finish:  887.mat
+finish:  888.mat
+finish:  889.mat
+finish:  890.mat
+finish:  891.mat
+finish:  892.mat
+finish:  893.mat
+finish:  894.mat
+finish:  895.mat
+finish:  896.mat
+finish:  897.mat
+finish:  898.mat
+finish:  899.mat
+finish:  900.mat
+finish:  901.mat
+finish:  902.mat
+finish:  903.mat
+finish:  904.mat
+finish:  905.mat
+finish:  906.mat
+finish:  907.mat
+finish:  908.mat
+finish:  909.mat
+finish:  910.mat
+finish:  911.mat
+finish:  912.mat
+finish:  913.mat
+finish:  914.mat
+finish:  915.mat
+finish:  916.mat
+finish:  917.mat
+finish:  918.mat
+finish:  919.mat
+finish:  920.mat
+finish:  921.mat
+finish:  922.mat
+finish:  923.mat
+finish:  924.mat
+finish:  925.mat
+finish:  926.mat
+finish:  927.mat
+finish:  928.mat
+finish:  929.mat
+finish:  930.mat
+finish:  931.mat
+finish:  932.mat
+finish:  933.mat
+finish:  934.mat
+finish:  935.mat
+finish:  936.mat
+finish:  937.mat
+finish:  938.mat
+finish:  939.mat
+finish:  940.mat
+finish:  941.mat
+finish:  942.mat
+finish:  943.mat
+finish:  944.mat
+finish:  945.mat
+finish:  946.mat
+finish:  947.mat
+finish:  948.mat
+finish:  949.mat
+finish:  950.mat
+Validation set samples:  6441
+[iter:307300/400000],lr=0.000241781,train_losses.avg=0.131924987
+[iter:307320/400000],lr=0.000241781,train_losses.avg=0.121422783
+[iter:307340/400000],lr=0.000241781,train_losses.avg=0.114728823
+[iter:307360/400000],lr=0.000241781,train_losses.avg=0.115702696
+[iter:307380/400000],lr=0.000241781,train_losses.avg=0.116254181
+[iter:307400/400000],lr=0.000241781,train_losses.avg=0.115198120
+[iter:307420/400000],lr=0.000241781,train_losses.avg=0.116151527
+[iter:307440/400000],lr=0.000241781,train_losses.avg=0.115097508
+[iter:307460/400000],lr=0.000241781,train_losses.avg=0.116172113
+[iter:307480/400000],lr=0.000241781,train_losses.avg=0.115741238
+[iter:307500/400000],lr=0.000241781,train_losses.avg=0.114980265
+[iter:307520/400000],lr=0.000241781,train_losses.avg=0.115061022
+[iter:307540/400000],lr=0.000241781,train_losses.avg=0.115283288
+[iter:307560/400000],lr=0.000241781,train_losses.avg=0.115736172
+[iter:307580/400000],lr=0.000241781,train_losses.avg=0.115478635
+[iter:307600/400000],lr=0.000241781,train_losses.avg=0.115658708
+[iter:307620/400000],lr=0.000241781,train_losses.avg=0.115038037
+[iter:307640/400000],lr=0.000241780,train_losses.avg=0.115566388
+[iter:307660/400000],lr=0.000241780,train_losses.avg=0.115242742
+[iter:307680/400000],lr=0.000241780,train_losses.avg=0.114905775
+[iter:307700/400000],lr=0.000241780,train_losses.avg=0.114690356
+[iter:307720/400000],lr=0.000241780,train_losses.avg=0.115250736
+[iter:307740/400000],lr=0.000241780,train_losses.avg=0.115487874
+[iter:307760/400000],lr=0.000241780,train_losses.avg=0.115462892
+[iter:307780/400000],lr=0.000241780,train_losses.avg=0.115397841
+[iter:307800/400000],lr=0.000241780,train_losses.avg=0.115786374
+[iter:307820/400000],lr=0.000241780,train_losses.avg=0.116182394
+[iter:307840/400000],lr=0.000241780,train_losses.avg=0.115972459
+[iter:307860/400000],lr=0.000241780,train_losses.avg=0.116242059
+[iter:307880/400000],lr=0.000241780,train_losses.avg=0.116391376
+[iter:307900/400000],lr=0.000241780,train_losses.avg=0.116420433
+[iter:307920/400000],lr=0.000241779,train_losses.avg=0.116386548
+[iter:307940/400000],lr=0.000241779,train_losses.avg=0.116211899
+[iter:307960/400000],lr=0.000241779,train_losses.avg=0.116323888
+[iter:307980/400000],lr=0.000241779,train_losses.avg=0.116056278
+[iter:308000/400000],lr=0.000241779,train_losses.avg=0.116155237
+[iter:308020/400000],lr=0.000241779,train_losses.avg=0.116597094
+[iter:308040/400000],lr=0.000241779,train_losses.avg=0.116756760
+[iter:308060/400000],lr=0.000241779,train_losses.avg=0.117036171
+[iter:308080/400000],lr=0.000241779,train_losses.avg=0.116791770
+[iter:308100/400000],lr=0.000241779,train_losses.avg=0.116599329
+[iter:308120/400000],lr=0.000241778,train_losses.avg=0.116426989
+[iter:308140/400000],lr=0.000241778,train_losses.avg=0.116298065
+[iter:308160/400000],lr=0.000241778,train_losses.avg=0.116247162
+[iter:308180/400000],lr=0.000241778,train_losses.avg=0.116115056
+[iter:308200/400000],lr=0.000241778,train_losses.avg=0.116051562
+[iter:308220/400000],lr=0.000241778,train_losses.avg=0.115958802
+[iter:308240/400000],lr=0.000241778,train_losses.avg=0.115796901
+[iter:308260/400000],lr=0.000241777,train_losses.avg=0.115779407
+[iter:308280/400000],lr=0.000241777,train_losses.avg=0.115652099
+[iter:308300/400000],lr=0.000241777,train_losses.avg=0.115488574
+[iter:308320/400000],lr=0.000241777,train_losses.avg=0.115476280
+[iter:308340/400000],lr=0.000241777,train_losses.avg=0.115625046
+[iter:308360/400000],lr=0.000241777,train_losses.avg=0.115743250
+[iter:308380/400000],lr=0.000241777,train_losses.avg=0.115547813
+[iter:308400/400000],lr=0.000241776,train_losses.avg=0.115711063
+[iter:308420/400000],lr=0.000241776,train_losses.avg=0.115643412
+[iter:308440/400000],lr=0.000241776,train_losses.avg=0.115665287
+[iter:308460/400000],lr=0.000241776,train_losses.avg=0.115614511
+[iter:308480/400000],lr=0.000241776,train_losses.avg=0.115699671
+[iter:308500/400000],lr=0.000241776,train_losses.avg=0.115489133
+[iter:308520/400000],lr=0.000241775,train_losses.avg=0.115513600
+[iter:308540/400000],lr=0.000241775,train_losses.avg=0.115405031
+[iter:308560/400000],lr=0.000241775,train_losses.avg=0.115205996
+[iter:308580/400000],lr=0.000241775,train_losses.avg=0.115216844
+[iter:308600/400000],lr=0.000241775,train_losses.avg=0.115273878
+[iter:308620/400000],lr=0.000241774,train_losses.avg=0.115504079
+[iter:308640/400000],lr=0.000241774,train_losses.avg=0.115525544
+[iter:308660/400000],lr=0.000241774,train_losses.avg=0.115503214
+[iter:308680/400000],lr=0.000241774,train_losses.avg=0.115551300
+[iter:308700/400000],lr=0.000241774,train_losses.avg=0.115566939
+[iter:308720/400000],lr=0.000241773,train_losses.avg=0.115497790
+[iter:308740/400000],lr=0.000241773,train_losses.avg=0.115303047
+[iter:308760/400000],lr=0.000241773,train_losses.avg=0.115143396
+[iter:308780/400000],lr=0.000241773,train_losses.avg=0.115165316
+[iter:308800/400000],lr=0.000241773,train_losses.avg=0.115104929
+[iter:308820/400000],lr=0.000241772,train_losses.avg=0.115168013
+[iter:308840/400000],lr=0.000241772,train_losses.avg=0.115092240
+[iter:308860/400000],lr=0.000241772,train_losses.avg=0.115028314
+[iter:308880/400000],lr=0.000241772,train_losses.avg=0.114965744
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.10981342196464539, RMSE: 0.014629820361733437, PNSR:37.73614501953125, SAM: 0.034290313720703125, SID: 0.0001259636046597734
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+ Iter[308896], Epoch[000030], learning rate : 0.000241771, Train MRAE: 0.114888102, Test MRAE: 0.109813422, Test RMSE: 0.014629820, Test PSNR: 37.736145020, SAM: 0.034290314, SID: 0.000125964 
+[iter:308900/400000],lr=0.000241771,train_losses.avg=0.108869806
+[iter:308920/400000],lr=0.000241771,train_losses.avg=0.105953559
+[iter:308940/400000],lr=0.000241771,train_losses.avg=0.109478436
+[iter:308960/400000],lr=0.000241771,train_losses.avg=0.110377140
+[iter:308980/400000],lr=0.000241770,train_losses.avg=0.110246368
+[iter:309000/400000],lr=0.000241770,train_losses.avg=0.111246616
+[iter:309020/400000],lr=0.000241770,train_losses.avg=0.109409362
+[iter:309040/400000],lr=0.000241770,train_losses.avg=0.109562770
+[iter:309060/400000],lr=0.000241769,train_losses.avg=0.109939314
+[iter:309080/400000],lr=0.000241769,train_losses.avg=0.111306481
+[iter:309100/400000],lr=0.000241769,train_losses.avg=0.111859009
+[iter:309120/400000],lr=0.000241769,train_losses.avg=0.112167984
+[iter:309140/400000],lr=0.000241768,train_losses.avg=0.112171866
+[iter:309160/400000],lr=0.000241768,train_losses.avg=0.112096719
+[iter:309180/400000],lr=0.000241768,train_losses.avg=0.112527251
+[iter:309200/400000],lr=0.000241767,train_losses.avg=0.112621889
+[iter:309220/400000],lr=0.000241767,train_losses.avg=0.112732925
+[iter:309240/400000],lr=0.000241767,train_losses.avg=0.112655886
+[iter:309260/400000],lr=0.000241767,train_losses.avg=0.112827145
+[iter:309280/400000],lr=0.000241766,train_losses.avg=0.113013342
+[iter:309300/400000],lr=0.000241766,train_losses.avg=0.112835385
+[iter:309320/400000],lr=0.000241766,train_losses.avg=0.112926878
+[iter:309340/400000],lr=0.000241765,train_losses.avg=0.112807654
+[iter:309360/400000],lr=0.000241765,train_losses.avg=0.112582445
+[iter:309380/400000],lr=0.000241765,train_losses.avg=0.112999685
+[iter:309400/400000],lr=0.000241764,train_losses.avg=0.112618282
+[iter:309420/400000],lr=0.000241764,train_losses.avg=0.112283565
+[iter:309440/400000],lr=0.000241764,train_losses.avg=0.112484045
+[iter:309460/400000],lr=0.000241764,train_losses.avg=0.112552054
+[iter:309480/400000],lr=0.000241763,train_losses.avg=0.112646922
+[iter:309500/400000],lr=0.000241763,train_losses.avg=0.112303130
+[iter:309520/400000],lr=0.000241763,train_losses.avg=0.112361141
+[iter:309540/400000],lr=0.000241762,train_losses.avg=0.112244613
+[iter:309560/400000],lr=0.000241762,train_losses.avg=0.112405360
+[iter:309580/400000],lr=0.000241762,train_losses.avg=0.112437777
+[iter:309600/400000],lr=0.000241761,train_losses.avg=0.112371244
+[iter:309620/400000],lr=0.000241761,train_losses.avg=0.112693451
+[iter:309640/400000],lr=0.000241761,train_losses.avg=0.112802364
+[iter:309660/400000],lr=0.000241760,train_losses.avg=0.112878822
+[iter:309680/400000],lr=0.000241760,train_losses.avg=0.112955205
+[iter:309700/400000],lr=0.000241759,train_losses.avg=0.112828076
+[iter:309720/400000],lr=0.000241759,train_losses.avg=0.113013387
+[iter:309740/400000],lr=0.000241759,train_losses.avg=0.112983607
+[iter:309760/400000],lr=0.000241758,train_losses.avg=0.112914361
+[iter:309780/400000],lr=0.000241758,train_losses.avg=0.113164432
+[iter:309800/400000],lr=0.000241758,train_losses.avg=0.113422580
+[iter:309820/400000],lr=0.000241757,train_losses.avg=0.113505475
+[iter:309840/400000],lr=0.000241757,train_losses.avg=0.113458693
+[iter:309860/400000],lr=0.000241757,train_losses.avg=0.113515027
+[iter:309880/400000],lr=0.000241756,train_losses.avg=0.113438681
+[iter:309900/400000],lr=0.000241756,train_losses.avg=0.113338359
+[iter:309920/400000],lr=0.000241755,train_losses.avg=0.113317788
+[iter:309940/400000],lr=0.000241755,train_losses.avg=0.113380909
+[iter:309960/400000],lr=0.000241755,train_losses.avg=0.113455370
+[iter:309980/400000],lr=0.000241754,train_losses.avg=0.113401167
+[iter:310000/400000],lr=0.000241754,train_losses.avg=0.113409907
+[iter:310020/400000],lr=0.000241753,train_losses.avg=0.113518015
+[iter:310040/400000],lr=0.000241753,train_losses.avg=0.113407545
+[iter:310060/400000],lr=0.000241753,train_losses.avg=0.113246091
+[iter:310080/400000],lr=0.000241752,train_losses.avg=0.113362260
+[iter:310100/400000],lr=0.000241752,train_losses.avg=0.113460816
+[iter:310120/400000],lr=0.000241751,train_losses.avg=0.113316104
+[iter:310140/400000],lr=0.000241751,train_losses.avg=0.113287456
+[iter:310160/400000],lr=0.000241750,train_losses.avg=0.113342434
+[iter:310180/400000],lr=0.000241750,train_losses.avg=0.113401964
+[iter:310200/400000],lr=0.000241750,train_losses.avg=0.113314703
+[iter:310220/400000],lr=0.000241749,train_losses.avg=0.113260850
+[iter:310240/400000],lr=0.000241749,train_losses.avg=0.113305196
+[iter:310260/400000],lr=0.000241748,train_losses.avg=0.113257609
+[iter:310280/400000],lr=0.000241748,train_losses.avg=0.113173246
+[iter:310300/400000],lr=0.000241747,train_losses.avg=0.113175482
+[iter:310320/400000],lr=0.000241747,train_losses.avg=0.113137014
+[iter:310340/400000],lr=0.000241747,train_losses.avg=0.113274969
+[iter:310360/400000],lr=0.000241746,train_losses.avg=0.113364793
+[iter:310380/400000],lr=0.000241746,train_losses.avg=0.113206118
+[iter:310400/400000],lr=0.000241745,train_losses.avg=0.113203123
+[iter:310420/400000],lr=0.000241745,train_losses.avg=0.113090031
+[iter:310440/400000],lr=0.000241744,train_losses.avg=0.113021187
+[iter:310460/400000],lr=0.000241744,train_losses.avg=0.113130108
+[iter:310480/400000],lr=0.000241743,train_losses.avg=0.113090605
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.11033753305673599, RMSE: 0.015052610076963902, PNSR:37.31480026245117, SAM: 0.03422103449702263, SID: 0.00012959502055309713
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+ Iter[310496], Epoch[000031], learning rate : 0.000241743, Train MRAE: 0.113038488, Test MRAE: 0.110337533, Test RMSE: 0.015052610, Test PSNR: 37.314800262, SAM: 0.034221034, SID: 0.000129595 
+[iter:310500/400000],lr=0.000241743,train_losses.avg=0.120284438
+[iter:310520/400000],lr=0.000241742,train_losses.avg=0.112817392
+[iter:310540/400000],lr=0.000241742,train_losses.avg=0.113903068
+[iter:310560/400000],lr=0.000241741,train_losses.avg=0.112487234
+[iter:310580/400000],lr=0.000241741,train_losses.avg=0.112454906
+[iter:310600/400000],lr=0.000241740,train_losses.avg=0.112069868
+[iter:310620/400000],lr=0.000241740,train_losses.avg=0.112746589
+[iter:310640/400000],lr=0.000241739,train_losses.avg=0.111394286
+[iter:310660/400000],lr=0.000241739,train_losses.avg=0.110182770
+[iter:310680/400000],lr=0.000241738,train_losses.avg=0.110538110
+[iter:310700/400000],lr=0.000241738,train_losses.avg=0.109728053
+[iter:310720/400000],lr=0.000241737,train_losses.avg=0.109663613
+[iter:310740/400000],lr=0.000241737,train_losses.avg=0.110253863
+[iter:310760/400000],lr=0.000241736,train_losses.avg=0.110666730
+[iter:310780/400000],lr=0.000241736,train_losses.avg=0.112089708
+[iter:310800/400000],lr=0.000241735,train_losses.avg=0.111953720
+[iter:310820/400000],lr=0.000241735,train_losses.avg=0.112370901
+[iter:310840/400000],lr=0.000241734,train_losses.avg=0.112429127
+[iter:310860/400000],lr=0.000241734,train_losses.avg=0.112262256
+[iter:310880/400000],lr=0.000241733,train_losses.avg=0.112639241
+[iter:310900/400000],lr=0.000241733,train_losses.avg=0.112661548
+[iter:310920/400000],lr=0.000241732,train_losses.avg=0.112727188
+[iter:310940/400000],lr=0.000241732,train_losses.avg=0.112264939
+[iter:310960/400000],lr=0.000241731,train_losses.avg=0.112454049
+[iter:310980/400000],lr=0.000241731,train_losses.avg=0.112500392
+[iter:311000/400000],lr=0.000241730,train_losses.avg=0.112496264
+[iter:311020/400000],lr=0.000241729,train_losses.avg=0.112484090
+[iter:311040/400000],lr=0.000241729,train_losses.avg=0.112232856
+[iter:311060/400000],lr=0.000241728,train_losses.avg=0.112176716
+[iter:311080/400000],lr=0.000241728,train_losses.avg=0.111902289
+[iter:311100/400000],lr=0.000241727,train_losses.avg=0.112138204
+[iter:311120/400000],lr=0.000241727,train_losses.avg=0.111985110
+[iter:311140/400000],lr=0.000241726,train_losses.avg=0.112007335
+[iter:311160/400000],lr=0.000241725,train_losses.avg=0.112071805
+[iter:311180/400000],lr=0.000241725,train_losses.avg=0.112096980
+[iter:311200/400000],lr=0.000241724,train_losses.avg=0.112178825
+[iter:311220/400000],lr=0.000241724,train_losses.avg=0.112225071
+[iter:311240/400000],lr=0.000241723,train_losses.avg=0.112338997
+[iter:311260/400000],lr=0.000241723,train_losses.avg=0.112248756
+[iter:311280/400000],lr=0.000241722,train_losses.avg=0.112253651
+[iter:311300/400000],lr=0.000241721,train_losses.avg=0.112145975
+[iter:311320/400000],lr=0.000241721,train_losses.avg=0.112248793
+[iter:311340/400000],lr=0.000241720,train_losses.avg=0.112225078
+[iter:311360/400000],lr=0.000241720,train_losses.avg=0.111987352
+[iter:311380/400000],lr=0.000241719,train_losses.avg=0.111933708
+[iter:311400/400000],lr=0.000241718,train_losses.avg=0.111971036
+[iter:311420/400000],lr=0.000241718,train_losses.avg=0.111945212
+[iter:311440/400000],lr=0.000241717,train_losses.avg=0.111978740
+[iter:311460/400000],lr=0.000241717,train_losses.avg=0.111833803
+[iter:311480/400000],lr=0.000241716,train_losses.avg=0.111905456
+[iter:311500/400000],lr=0.000241715,train_losses.avg=0.111975431
+[iter:311520/400000],lr=0.000241715,train_losses.avg=0.112040207
+[iter:311540/400000],lr=0.000241714,train_losses.avg=0.112168230
+[iter:311560/400000],lr=0.000241713,train_losses.avg=0.112271480
+[iter:311580/400000],lr=0.000241713,train_losses.avg=0.112155758
+[iter:311600/400000],lr=0.000241712,train_losses.avg=0.112252116
+[iter:311620/400000],lr=0.000241712,train_losses.avg=0.112189926
+[iter:311640/400000],lr=0.000241711,train_losses.avg=0.112127826
+[iter:311660/400000],lr=0.000241710,train_losses.avg=0.112310171
+[iter:311680/400000],lr=0.000241710,train_losses.avg=0.112252519
+[iter:311700/400000],lr=0.000241709,train_losses.avg=0.112186395
+[iter:311720/400000],lr=0.000241708,train_losses.avg=0.112014644
+[iter:311740/400000],lr=0.000241708,train_losses.avg=0.111930922
+[iter:311760/400000],lr=0.000241707,train_losses.avg=0.111975543
+[iter:311780/400000],lr=0.000241706,train_losses.avg=0.111901477
+[iter:311800/400000],lr=0.000241706,train_losses.avg=0.111960426
+[iter:311820/400000],lr=0.000241705,train_losses.avg=0.111744560
+[iter:311840/400000],lr=0.000241704,train_losses.avg=0.111879237
+[iter:311860/400000],lr=0.000241704,train_losses.avg=0.111944877
+[iter:311880/400000],lr=0.000241703,train_losses.avg=0.112135507
+[iter:311900/400000],lr=0.000241702,train_losses.avg=0.112249583
+[iter:311920/400000],lr=0.000241702,train_losses.avg=0.112296879
+[iter:311940/400000],lr=0.000241701,train_losses.avg=0.112398878
+[iter:311960/400000],lr=0.000241700,train_losses.avg=0.112395927
+[iter:311980/400000],lr=0.000241699,train_losses.avg=0.112441778
+[iter:312000/400000],lr=0.000241699,train_losses.avg=0.112597667
+[iter:312020/400000],lr=0.000241698,train_losses.avg=0.112562083
+[iter:312040/400000],lr=0.000241697,train_losses.avg=0.112631358
+[iter:312060/400000],lr=0.000241697,train_losses.avg=0.112684548
+[iter:312080/400000],lr=0.000241696,train_losses.avg=0.112647012
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.1116507425904274, RMSE: 0.015240565873682499, PNSR:37.25611877441406, SAM: 0.03435179591178894, SID: 0.00013112368469592184
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+ Iter[312096], Epoch[000032], learning rate : 0.000241695, Train MRAE: 0.112605706, Test MRAE: 0.111650743, Test RMSE: 0.015240566, Test PSNR: 37.256118774, SAM: 0.034351796, SID: 0.000131124 
+[iter:312100/400000],lr=0.000241695,train_losses.avg=0.132521451
+[iter:312120/400000],lr=0.000241695,train_losses.avg=0.119570963
+[iter:312140/400000],lr=0.000241694,train_losses.avg=0.120567866
+[iter:312160/400000],lr=0.000241693,train_losses.avg=0.117289394
+[iter:312180/400000],lr=0.000241692,train_losses.avg=0.115206189
+[iter:312200/400000],lr=0.000241692,train_losses.avg=0.113436237
+[iter:312220/400000],lr=0.000241691,train_losses.avg=0.112415373
+[iter:312240/400000],lr=0.000241690,train_losses.avg=0.111641012
+[iter:312260/400000],lr=0.000241689,train_losses.avg=0.111223020
+[iter:312280/400000],lr=0.000241689,train_losses.avg=0.110511236
+[iter:312300/400000],lr=0.000241688,train_losses.avg=0.111011088
+[iter:312320/400000],lr=0.000241687,train_losses.avg=0.110270165
+[iter:312340/400000],lr=0.000241686,train_losses.avg=0.110357732
+[iter:312360/400000],lr=0.000241686,train_losses.avg=0.110172711
+[iter:312380/400000],lr=0.000241685,train_losses.avg=0.109935202
+[iter:312400/400000],lr=0.000241684,train_losses.avg=0.110359244
+[iter:312420/400000],lr=0.000241683,train_losses.avg=0.110468902
+[iter:312440/400000],lr=0.000241683,train_losses.avg=0.110762052
+[iter:312460/400000],lr=0.000241682,train_losses.avg=0.111122698
+[iter:312480/400000],lr=0.000241681,train_losses.avg=0.110992834
+[iter:312500/400000],lr=0.000241680,train_losses.avg=0.111117981
+[iter:312520/400000],lr=0.000241680,train_losses.avg=0.111362621
+[iter:312540/400000],lr=0.000241679,train_losses.avg=0.111519612
+[iter:312560/400000],lr=0.000241678,train_losses.avg=0.111700721
+[iter:312580/400000],lr=0.000241677,train_losses.avg=0.111423336
+[iter:312600/400000],lr=0.000241676,train_losses.avg=0.111757182
+[iter:312620/400000],lr=0.000241676,train_losses.avg=0.111387387
+[iter:312640/400000],lr=0.000241675,train_losses.avg=0.110972874
+[iter:312660/400000],lr=0.000241674,train_losses.avg=0.110835642
+[iter:312680/400000],lr=0.000241673,train_losses.avg=0.110886067
+[iter:312700/400000],lr=0.000241673,train_losses.avg=0.111007504
+[iter:312720/400000],lr=0.000241672,train_losses.avg=0.111088403
+[iter:312740/400000],lr=0.000241671,train_losses.avg=0.111229159
+[iter:312760/400000],lr=0.000241670,train_losses.avg=0.111232512
+[iter:312780/400000],lr=0.000241669,train_losses.avg=0.111493967
+[iter:312800/400000],lr=0.000241668,train_losses.avg=0.111491919
+[iter:312820/400000],lr=0.000241668,train_losses.avg=0.111750357
+[iter:312840/400000],lr=0.000241667,train_losses.avg=0.111787446
+[iter:312860/400000],lr=0.000241666,train_losses.avg=0.111751787
+[iter:312880/400000],lr=0.000241665,train_losses.avg=0.111923255
+[iter:312900/400000],lr=0.000241664,train_losses.avg=0.112020493
+[iter:312920/400000],lr=0.000241664,train_losses.avg=0.111849822
+[iter:312940/400000],lr=0.000241663,train_losses.avg=0.111782506
+[iter:312960/400000],lr=0.000241662,train_losses.avg=0.111757770
+[iter:312980/400000],lr=0.000241661,train_losses.avg=0.111501895
+[iter:313000/400000],lr=0.000241660,train_losses.avg=0.111417636
+[iter:313020/400000],lr=0.000241659,train_losses.avg=0.111268155
+[iter:313040/400000],lr=0.000241658,train_losses.avg=0.111456148
+[iter:313060/400000],lr=0.000241658,train_losses.avg=0.111788645
+[iter:313080/400000],lr=0.000241657,train_losses.avg=0.111717351
+[iter:313100/400000],lr=0.000241656,train_losses.avg=0.111522593
+[iter:313120/400000],lr=0.000241655,train_losses.avg=0.111613467
+[iter:313140/400000],lr=0.000241654,train_losses.avg=0.111576214
+[iter:313160/400000],lr=0.000241653,train_losses.avg=0.111750096
+[iter:313180/400000],lr=0.000241652,train_losses.avg=0.111882165
+[iter:313200/400000],lr=0.000241652,train_losses.avg=0.111781240
+[iter:313220/400000],lr=0.000241651,train_losses.avg=0.111714721
+[iter:313240/400000],lr=0.000241650,train_losses.avg=0.111862741
+[iter:313260/400000],lr=0.000241649,train_losses.avg=0.111915328
+[iter:313280/400000],lr=0.000241648,train_losses.avg=0.111912847
+[iter:313300/400000],lr=0.000241647,train_losses.avg=0.111945026
+[iter:313320/400000],lr=0.000241646,train_losses.avg=0.112034395
+[iter:313340/400000],lr=0.000241645,train_losses.avg=0.112109073
+[iter:313360/400000],lr=0.000241644,train_losses.avg=0.112138532
+[iter:313380/400000],lr=0.000241644,train_losses.avg=0.112200633
+[iter:313400/400000],lr=0.000241643,train_losses.avg=0.112118803
+[iter:313420/400000],lr=0.000241642,train_losses.avg=0.112059854
+[iter:313440/400000],lr=0.000241641,train_losses.avg=0.112141870
+[iter:313460/400000],lr=0.000241640,train_losses.avg=0.112157136
+[iter:313480/400000],lr=0.000241639,train_losses.avg=0.112418666
+[iter:313500/400000],lr=0.000241638,train_losses.avg=0.112349205
+[iter:313520/400000],lr=0.000241637,train_losses.avg=0.112470642
+[iter:313540/400000],lr=0.000241636,train_losses.avg=0.112316035
+[iter:313560/400000],lr=0.000241635,train_losses.avg=0.112343647
+[iter:313580/400000],lr=0.000241634,train_losses.avg=0.112289108
+[iter:313600/400000],lr=0.000241633,train_losses.avg=0.112302378
+[iter:313620/400000],lr=0.000241632,train_losses.avg=0.112287156
+[iter:313640/400000],lr=0.000241632,train_losses.avg=0.112335183
+[iter:313660/400000],lr=0.000241631,train_losses.avg=0.112192325
+[iter:313680/400000],lr=0.000241630,train_losses.avg=0.112241738
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.11979500204324722, RMSE: 0.01618085615336895, PNSR:36.595516204833984, SAM: 0.033757373690605164, SID: 0.0001315384724875912
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+ Iter[313696], Epoch[000033], learning rate : 0.000241629, Train MRAE: 0.112143241, Test MRAE: 0.119795002, Test RMSE: 0.016180856, Test PSNR: 36.595516205, SAM: 0.033757374, SID: 0.000131538 
+[iter:313700/400000],lr=0.000241629,train_losses.avg=0.132262960
+[iter:313720/400000],lr=0.000241628,train_losses.avg=0.108125329
+[iter:313740/400000],lr=0.000241627,train_losses.avg=0.105065294
+[iter:313760/400000],lr=0.000241626,train_losses.avg=0.105305463
+[iter:313780/400000],lr=0.000241625,train_losses.avg=0.105510660
+[iter:313800/400000],lr=0.000241624,train_losses.avg=0.105622865
+[iter:313820/400000],lr=0.000241623,train_losses.avg=0.106635228
+[iter:313840/400000],lr=0.000241622,train_losses.avg=0.107736789
+[iter:313860/400000],lr=0.000241621,train_losses.avg=0.108873747
+[iter:313880/400000],lr=0.000241620,train_losses.avg=0.109247260
+[iter:313900/400000],lr=0.000241619,train_losses.avg=0.109130733
+[iter:313920/400000],lr=0.000241618,train_losses.avg=0.110039249
+[iter:313940/400000],lr=0.000241617,train_losses.avg=0.108962476
+[iter:313960/400000],lr=0.000241616,train_losses.avg=0.109484814
+[iter:313980/400000],lr=0.000241615,train_losses.avg=0.109382972
+[iter:314000/400000],lr=0.000241614,train_losses.avg=0.109552093
+[iter:314020/400000],lr=0.000241613,train_losses.avg=0.109501250
+[iter:314040/400000],lr=0.000241612,train_losses.avg=0.109815739
+[iter:314060/400000],lr=0.000241611,train_losses.avg=0.109552704
+[iter:314080/400000],lr=0.000241610,train_losses.avg=0.109227709
+[iter:314100/400000],lr=0.000241609,train_losses.avg=0.109655142
+[iter:314120/400000],lr=0.000241608,train_losses.avg=0.109706275
+[iter:314140/400000],lr=0.000241607,train_losses.avg=0.109780453
+[iter:314160/400000],lr=0.000241606,train_losses.avg=0.110296063
+[iter:314180/400000],lr=0.000241605,train_losses.avg=0.110462040
+[iter:314200/400000],lr=0.000241604,train_losses.avg=0.110220432
+[iter:314220/400000],lr=0.000241603,train_losses.avg=0.110292926
+[iter:314240/400000],lr=0.000241602,train_losses.avg=0.110453494
+[iter:314260/400000],lr=0.000241601,train_losses.avg=0.110510498
+[iter:314280/400000],lr=0.000241600,train_losses.avg=0.110418282
+[iter:314300/400000],lr=0.000241599,train_losses.avg=0.110425606
+[iter:314320/400000],lr=0.000241598,train_losses.avg=0.110131659
+[iter:314340/400000],lr=0.000241597,train_losses.avg=0.110674061
+[iter:314360/400000],lr=0.000241596,train_losses.avg=0.110315651
+[iter:314380/400000],lr=0.000241595,train_losses.avg=0.110603154
+[iter:314400/400000],lr=0.000241594,train_losses.avg=0.110787988
+[iter:314420/400000],lr=0.000241593,train_losses.avg=0.111128144
+[iter:314440/400000],lr=0.000241591,train_losses.avg=0.111029714
+[iter:314460/400000],lr=0.000241590,train_losses.avg=0.111224808
+[iter:314480/400000],lr=0.000241589,train_losses.avg=0.111062638
+[iter:314500/400000],lr=0.000241588,train_losses.avg=0.111075245
+[iter:314520/400000],lr=0.000241587,train_losses.avg=0.111117668
+[iter:314540/400000],lr=0.000241586,train_losses.avg=0.111212991
+[iter:314560/400000],lr=0.000241585,train_losses.avg=0.111066893
+[iter:314580/400000],lr=0.000241584,train_losses.avg=0.111110114
+[iter:314600/400000],lr=0.000241583,train_losses.avg=0.111025311
+[iter:314620/400000],lr=0.000241582,train_losses.avg=0.111073159
+[iter:314640/400000],lr=0.000241581,train_losses.avg=0.111103371
+[iter:314660/400000],lr=0.000241580,train_losses.avg=0.111167721
+[iter:314680/400000],lr=0.000241579,train_losses.avg=0.111180462
+[iter:314700/400000],lr=0.000241577,train_losses.avg=0.111111104
+[iter:314720/400000],lr=0.000241576,train_losses.avg=0.111245967
+[iter:314740/400000],lr=0.000241575,train_losses.avg=0.111373559
+[iter:314760/400000],lr=0.000241574,train_losses.avg=0.111329824
+[iter:314780/400000],lr=0.000241573,train_losses.avg=0.111484647
+[iter:314800/400000],lr=0.000241572,train_losses.avg=0.111472957
+[iter:314820/400000],lr=0.000241571,train_losses.avg=0.111493677
+[iter:314840/400000],lr=0.000241570,train_losses.avg=0.111295581
+[iter:314860/400000],lr=0.000241569,train_losses.avg=0.111319892
+[iter:314880/400000],lr=0.000241567,train_losses.avg=0.111349843
+[iter:314900/400000],lr=0.000241566,train_losses.avg=0.111308172
+[iter:314920/400000],lr=0.000241565,train_losses.avg=0.111388125
+[iter:314940/400000],lr=0.000241564,train_losses.avg=0.111363925
+[iter:314960/400000],lr=0.000241563,train_losses.avg=0.111418352
+[iter:314980/400000],lr=0.000241562,train_losses.avg=0.111496672
+[iter:315000/400000],lr=0.000241561,train_losses.avg=0.111391544
+[iter:315020/400000],lr=0.000241559,train_losses.avg=0.111244984
+[iter:315040/400000],lr=0.000241558,train_losses.avg=0.111096203
+[iter:315060/400000],lr=0.000241557,train_losses.avg=0.111116000
+[iter:315080/400000],lr=0.000241556,train_losses.avg=0.111272544
+[iter:315100/400000],lr=0.000241555,train_losses.avg=0.111182287
+[iter:315120/400000],lr=0.000241554,train_losses.avg=0.111164033
+[iter:315140/400000],lr=0.000241553,train_losses.avg=0.111233376
+[iter:315160/400000],lr=0.000241551,train_losses.avg=0.111113414
+[iter:315180/400000],lr=0.000241550,train_losses.avg=0.111083105
+[iter:315200/400000],lr=0.000241549,train_losses.avg=0.111199476
+[iter:315220/400000],lr=0.000241548,train_losses.avg=0.111249305
+[iter:315240/400000],lr=0.000241547,train_losses.avg=0.111249685
+[iter:315260/400000],lr=0.000241546,train_losses.avg=0.111198850
+[iter:315280/400000],lr=0.000241544,train_losses.avg=0.111174345
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.10956790298223495, RMSE: 0.015196344815194607, PNSR:37.356143951416016, SAM: 0.03421904891729355, SID: 0.00013153925829101354
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+net_0029epoch.pth  Removed. 
+ Iter[315296], Epoch[000034], learning rate : 0.000241543, Train MRAE: 0.111266851, Test MRAE: 0.109567903, Test RMSE: 0.015196345, Test PSNR: 37.356143951, SAM: 0.034219049, SID: 0.000131539 
+[iter:315300/400000],lr=0.000241543,train_losses.avg=0.116171822
+[iter:315320/400000],lr=0.000241542,train_losses.avg=0.111526340
+[iter:315340/400000],lr=0.000241541,train_losses.avg=0.108260475
+[iter:315360/400000],lr=0.000241540,train_losses.avg=0.107270524
+[iter:315380/400000],lr=0.000241538,train_losses.avg=0.109256655
+[iter:315400/400000],lr=0.000241537,train_losses.avg=0.109096535
+[iter:315420/400000],lr=0.000241536,train_losses.avg=0.108508840
+[iter:315440/400000],lr=0.000241535,train_losses.avg=0.107961193
+[iter:315460/400000],lr=0.000241534,train_losses.avg=0.108585700
+[iter:315480/400000],lr=0.000241532,train_losses.avg=0.109551556
+[iter:315500/400000],lr=0.000241531,train_losses.avg=0.110147096
+[iter:315520/400000],lr=0.000241530,train_losses.avg=0.110485047
+[iter:315540/400000],lr=0.000241529,train_losses.avg=0.110757925
+[iter:315560/400000],lr=0.000241527,train_losses.avg=0.110409960
+[iter:315580/400000],lr=0.000241526,train_losses.avg=0.110033214
+[iter:315600/400000],lr=0.000241525,train_losses.avg=0.110462092
+[iter:315620/400000],lr=0.000241524,train_losses.avg=0.110314593
+[iter:315640/400000],lr=0.000241523,train_losses.avg=0.110531539
+[iter:315660/400000],lr=0.000241521,train_losses.avg=0.110708147
+[iter:315680/400000],lr=0.000241520,train_losses.avg=0.110530779
+[iter:315700/400000],lr=0.000241519,train_losses.avg=0.109895431
+[iter:315720/400000],lr=0.000241518,train_losses.avg=0.110582806
+[iter:315740/400000],lr=0.000241516,train_losses.avg=0.110716566
+[iter:315760/400000],lr=0.000241515,train_losses.avg=0.110517755
+[iter:315780/400000],lr=0.000241514,train_losses.avg=0.110710025
+[iter:315800/400000],lr=0.000241513,train_losses.avg=0.110805288
+[iter:315820/400000],lr=0.000241511,train_losses.avg=0.110637002
+[iter:315840/400000],lr=0.000241510,train_losses.avg=0.110685490
+[iter:315860/400000],lr=0.000241509,train_losses.avg=0.110815823
+[iter:315880/400000],lr=0.000241507,train_losses.avg=0.110709853
+[iter:315900/400000],lr=0.000241506,train_losses.avg=0.110745162
+[iter:315920/400000],lr=0.000241505,train_losses.avg=0.110885508
+[iter:315940/400000],lr=0.000241504,train_losses.avg=0.110812955
+[iter:315960/400000],lr=0.000241502,train_losses.avg=0.110951349
+[iter:315980/400000],lr=0.000241501,train_losses.avg=0.111025356
+[iter:316000/400000],lr=0.000241500,train_losses.avg=0.110880971
+[iter:316020/400000],lr=0.000241498,train_losses.avg=0.111228585
+[iter:316040/400000],lr=0.000241497,train_losses.avg=0.111117981
+[iter:316060/400000],lr=0.000241496,train_losses.avg=0.111102447
+[iter:316080/400000],lr=0.000241495,train_losses.avg=0.111186408
+[iter:316100/400000],lr=0.000241493,train_losses.avg=0.111215524
+[iter:316120/400000],lr=0.000241492,train_losses.avg=0.111268960
+[iter:316140/400000],lr=0.000241491,train_losses.avg=0.111135028
+[iter:316160/400000],lr=0.000241489,train_losses.avg=0.110978678
+[iter:316180/400000],lr=0.000241488,train_losses.avg=0.110921048
+[iter:316200/400000],lr=0.000241487,train_losses.avg=0.110964514
+[iter:316220/400000],lr=0.000241485,train_losses.avg=0.111078486
+[iter:316240/400000],lr=0.000241484,train_losses.avg=0.111122034
+[iter:316260/400000],lr=0.000241483,train_losses.avg=0.111322686
+[iter:316280/400000],lr=0.000241481,train_losses.avg=0.111470565
+[iter:316300/400000],lr=0.000241480,train_losses.avg=0.111453809
+[iter:316320/400000],lr=0.000241479,train_losses.avg=0.111478440
+[iter:316340/400000],lr=0.000241477,train_losses.avg=0.111294255
+[iter:316360/400000],lr=0.000241476,train_losses.avg=0.111234583
+[iter:316380/400000],lr=0.000241475,train_losses.avg=0.111119375
+[iter:316400/400000],lr=0.000241473,train_losses.avg=0.111130923
+[iter:316420/400000],lr=0.000241472,train_losses.avg=0.111010641
+[iter:316440/400000],lr=0.000241471,train_losses.avg=0.110852152
+[iter:316460/400000],lr=0.000241469,train_losses.avg=0.110773079
+[iter:316480/400000],lr=0.000241468,train_losses.avg=0.110813580
+[iter:316500/400000],lr=0.000241467,train_losses.avg=0.110640720
+[iter:316520/400000],lr=0.000241465,train_losses.avg=0.110708237
+[iter:316540/400000],lr=0.000241464,train_losses.avg=0.110674277
+[iter:316560/400000],lr=0.000241462,train_losses.avg=0.110687502
+[iter:316580/400000],lr=0.000241461,train_losses.avg=0.110636376
+[iter:316600/400000],lr=0.000241460,train_losses.avg=0.110516235
+[iter:316620/400000],lr=0.000241458,train_losses.avg=0.110423110
+[iter:316640/400000],lr=0.000241457,train_losses.avg=0.110360682
+[iter:316660/400000],lr=0.000241456,train_losses.avg=0.110368408
+[iter:316680/400000],lr=0.000241454,train_losses.avg=0.110325687
+[iter:316700/400000],lr=0.000241453,train_losses.avg=0.110264115
+[iter:316720/400000],lr=0.000241451,train_losses.avg=0.110404722
+[iter:316740/400000],lr=0.000241450,train_losses.avg=0.110318653
+[iter:316760/400000],lr=0.000241449,train_losses.avg=0.110376857
+[iter:316780/400000],lr=0.000241447,train_losses.avg=0.110451072
+[iter:316800/400000],lr=0.000241446,train_losses.avg=0.110391378
+[iter:316820/400000],lr=0.000241444,train_losses.avg=0.110471241
+[iter:316840/400000],lr=0.000241443,train_losses.avg=0.110463478
+[iter:316860/400000],lr=0.000241441,train_losses.avg=0.110446438
+[iter:316880/400000],lr=0.000241440,train_losses.avg=0.110461861
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.1180189773440361, RMSE: 0.015732694417238235, PNSR:37.01249313354492, SAM: 0.03458278626203537, SID: 0.00013316611875779927
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+net_0030epoch.pth  Removed. 
+ Iter[316896], Epoch[000035], learning rate : 0.000241439, Train MRAE: 0.110393509, Test MRAE: 0.118018977, Test RMSE: 0.015732694, Test PSNR: 37.012493134, SAM: 0.034582786, SID: 0.000133166 
+[iter:316900/400000],lr=0.000241439,train_losses.avg=0.114168875
+[iter:316920/400000],lr=0.000241437,train_losses.avg=0.099803418
+[iter:316940/400000],lr=0.000241436,train_losses.avg=0.104505204
+[iter:316960/400000],lr=0.000241434,train_losses.avg=0.108012766
+[iter:316980/400000],lr=0.000241433,train_losses.avg=0.108913779
+[iter:317000/400000],lr=0.000241431,train_losses.avg=0.108204901
+[iter:317020/400000],lr=0.000241430,train_losses.avg=0.108932190
+[iter:317040/400000],lr=0.000241429,train_losses.avg=0.110118099
+[iter:317060/400000],lr=0.000241427,train_losses.avg=0.110707745
+[iter:317080/400000],lr=0.000241426,train_losses.avg=0.110508807
+[iter:317100/400000],lr=0.000241424,train_losses.avg=0.110663906
+[iter:317120/400000],lr=0.000241423,train_losses.avg=0.111136660
+[iter:317140/400000],lr=0.000241421,train_losses.avg=0.110751741
+[iter:317160/400000],lr=0.000241420,train_losses.avg=0.110498741
+[iter:317180/400000],lr=0.000241418,train_losses.avg=0.110378563
+[iter:317200/400000],lr=0.000241417,train_losses.avg=0.110216178
+[iter:317220/400000],lr=0.000241415,train_losses.avg=0.110674329
+[iter:317240/400000],lr=0.000241414,train_losses.avg=0.110798359
+[iter:317260/400000],lr=0.000241413,train_losses.avg=0.110826567
+[iter:317280/400000],lr=0.000241411,train_losses.avg=0.110635310
+[iter:317300/400000],lr=0.000241410,train_losses.avg=0.110963546
+[iter:317320/400000],lr=0.000241408,train_losses.avg=0.110760510
+[iter:317340/400000],lr=0.000241407,train_losses.avg=0.110866338
+[iter:317360/400000],lr=0.000241405,train_losses.avg=0.110148758
+[iter:317380/400000],lr=0.000241404,train_losses.avg=0.109818041
+[iter:317400/400000],lr=0.000241402,train_losses.avg=0.109787375
+[iter:317420/400000],lr=0.000241401,train_losses.avg=0.109690011
+[iter:317440/400000],lr=0.000241399,train_losses.avg=0.109521106
+[iter:317460/400000],lr=0.000241398,train_losses.avg=0.109644622
+[iter:317480/400000],lr=0.000241396,train_losses.avg=0.109961040
+[iter:317500/400000],lr=0.000241395,train_losses.avg=0.109976739
+[iter:317520/400000],lr=0.000241393,train_losses.avg=0.109799400
+[iter:317540/400000],lr=0.000241392,train_losses.avg=0.109709121
+[iter:317560/400000],lr=0.000241390,train_losses.avg=0.109689824
+[iter:317580/400000],lr=0.000241388,train_losses.avg=0.109867431
+[iter:317600/400000],lr=0.000241387,train_losses.avg=0.109977432
+[iter:317620/400000],lr=0.000241385,train_losses.avg=0.109842286
+[iter:317640/400000],lr=0.000241384,train_losses.avg=0.110016309
+[iter:317660/400000],lr=0.000241382,train_losses.avg=0.109812632
+[iter:317680/400000],lr=0.000241381,train_losses.avg=0.109585226
+[iter:317700/400000],lr=0.000241379,train_losses.avg=0.109565809
+[iter:317720/400000],lr=0.000241378,train_losses.avg=0.109618537
+[iter:317740/400000],lr=0.000241376,train_losses.avg=0.109689467
+[iter:317760/400000],lr=0.000241375,train_losses.avg=0.109611049
+[iter:317780/400000],lr=0.000241373,train_losses.avg=0.109540418
+[iter:317800/400000],lr=0.000241372,train_losses.avg=0.109508589
+[iter:317820/400000],lr=0.000241370,train_losses.avg=0.109526411
+[iter:317840/400000],lr=0.000241368,train_losses.avg=0.109582283
+[iter:317860/400000],lr=0.000241367,train_losses.avg=0.109587938
+[iter:317880/400000],lr=0.000241365,train_losses.avg=0.109714821
+[iter:317900/400000],lr=0.000241364,train_losses.avg=0.109685898
+[iter:317920/400000],lr=0.000241362,train_losses.avg=0.109731860
+[iter:317940/400000],lr=0.000241361,train_losses.avg=0.109686710
+[iter:317960/400000],lr=0.000241359,train_losses.avg=0.109708868
+[iter:317980/400000],lr=0.000241357,train_losses.avg=0.109746829
+[iter:318000/400000],lr=0.000241356,train_losses.avg=0.109755076
+[iter:318020/400000],lr=0.000241354,train_losses.avg=0.109785236
+[iter:318040/400000],lr=0.000241353,train_losses.avg=0.109779209
+[iter:318060/400000],lr=0.000241351,train_losses.avg=0.109748706
+[iter:318080/400000],lr=0.000241349,train_losses.avg=0.109702155
+[iter:318100/400000],lr=0.000241348,train_losses.avg=0.109781861
+[iter:318120/400000],lr=0.000241346,train_losses.avg=0.109792523
+[iter:318140/400000],lr=0.000241345,train_losses.avg=0.109816276
+[iter:318160/400000],lr=0.000241343,train_losses.avg=0.109946251
+[iter:318180/400000],lr=0.000241341,train_losses.avg=0.109935865
+[iter:318200/400000],lr=0.000241340,train_losses.avg=0.109836146
+[iter:318220/400000],lr=0.000241338,train_losses.avg=0.109806202
+[iter:318240/400000],lr=0.000241337,train_losses.avg=0.109882571
+[iter:318260/400000],lr=0.000241335,train_losses.avg=0.109894425
+[iter:318280/400000],lr=0.000241333,train_losses.avg=0.109696753
+[iter:318300/400000],lr=0.000241332,train_losses.avg=0.109558605
+[iter:318320/400000],lr=0.000241330,train_losses.avg=0.109419070
+[iter:318340/400000],lr=0.000241328,train_losses.avg=0.109371401
+[iter:318360/400000],lr=0.000241327,train_losses.avg=0.109500743
+[iter:318380/400000],lr=0.000241325,train_losses.avg=0.109427951
+[iter:318400/400000],lr=0.000241323,train_losses.avg=0.109497137
+[iter:318420/400000],lr=0.000241322,train_losses.avg=0.109521873
+[iter:318440/400000],lr=0.000241320,train_losses.avg=0.109613575
+[iter:318460/400000],lr=0.000241318,train_losses.avg=0.109510571
+[iter:318480/400000],lr=0.000241317,train_losses.avg=0.109550089
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.11639467626810074, RMSE: 0.015534552745521069, PNSR:36.94870376586914, SAM: 0.0343136228621006, SID: 0.00013380390009842813
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+net_0031epoch.pth  Removed. 
+ Iter[318496], Epoch[000036], learning rate : 0.000241316, Train MRAE: 0.109564982, Test MRAE: 0.116394676, Test RMSE: 0.015534553, Test PSNR: 36.948703766, SAM: 0.034313623, SID: 0.000133804 
+[iter:318500/400000],lr=0.000241315,train_losses.avg=0.104376242
+[iter:318520/400000],lr=0.000241314,train_losses.avg=0.106451526
+[iter:318540/400000],lr=0.000241312,train_losses.avg=0.107600756
+[iter:318560/400000],lr=0.000241310,train_losses.avg=0.110633463
+[iter:318580/400000],lr=0.000241309,train_losses.avg=0.111593410
+[iter:318600/400000],lr=0.000241307,train_losses.avg=0.110701352
+[iter:318620/400000],lr=0.000241305,train_losses.avg=0.111037381
+[iter:318640/400000],lr=0.000241303,train_losses.avg=0.111855067
+[iter:318660/400000],lr=0.000241302,train_losses.avg=0.110324122
+[iter:318680/400000],lr=0.000241300,train_losses.avg=0.111341603
+[iter:318700/400000],lr=0.000241298,train_losses.avg=0.111172251
+[iter:318720/400000],lr=0.000241297,train_losses.avg=0.110177733
+[iter:318740/400000],lr=0.000241295,train_losses.avg=0.110123828
+[iter:318760/400000],lr=0.000241293,train_losses.avg=0.110162951
+[iter:318780/400000],lr=0.000241292,train_losses.avg=0.109778255
+[iter:318800/400000],lr=0.000241290,train_losses.avg=0.109497182
+[iter:318820/400000],lr=0.000241288,train_losses.avg=0.109402113
+[iter:318840/400000],lr=0.000241286,train_losses.avg=0.109339185
+[iter:318860/400000],lr=0.000241285,train_losses.avg=0.109305754
+[iter:318880/400000],lr=0.000241283,train_losses.avg=0.108579934
+[iter:318900/400000],lr=0.000241281,train_losses.avg=0.108373687
+[iter:318920/400000],lr=0.000241280,train_losses.avg=0.109124079
+[iter:318940/400000],lr=0.000241278,train_losses.avg=0.108966738
+[iter:318960/400000],lr=0.000241276,train_losses.avg=0.108821228
+[iter:318980/400000],lr=0.000241274,train_losses.avg=0.108856522
+[iter:319000/400000],lr=0.000241273,train_losses.avg=0.108716391
+[iter:319020/400000],lr=0.000241271,train_losses.avg=0.108994447
+[iter:319040/400000],lr=0.000241269,train_losses.avg=0.108665533
+[iter:319060/400000],lr=0.000241267,train_losses.avg=0.108736627
+[iter:319080/400000],lr=0.000241266,train_losses.avg=0.108613215
+[iter:319100/400000],lr=0.000241264,train_losses.avg=0.108752891
+[iter:319120/400000],lr=0.000241262,train_losses.avg=0.108547322
+[iter:319140/400000],lr=0.000241260,train_losses.avg=0.108570620
+[iter:319160/400000],lr=0.000241259,train_losses.avg=0.108828790
+[iter:319180/400000],lr=0.000241257,train_losses.avg=0.108716786
+[iter:319200/400000],lr=0.000241255,train_losses.avg=0.108940423
+[iter:319220/400000],lr=0.000241253,train_losses.avg=0.108930096
+[iter:319240/400000],lr=0.000241252,train_losses.avg=0.109207891
+[iter:319260/400000],lr=0.000241250,train_losses.avg=0.109192438
+[iter:319280/400000],lr=0.000241248,train_losses.avg=0.109462969
+[iter:319300/400000],lr=0.000241246,train_losses.avg=0.109463915
+[iter:319320/400000],lr=0.000241245,train_losses.avg=0.109546609
+[iter:319340/400000],lr=0.000241243,train_losses.avg=0.109362148
+[iter:319360/400000],lr=0.000241241,train_losses.avg=0.109574825
+[iter:319380/400000],lr=0.000241239,train_losses.avg=0.109678894
+[iter:319400/400000],lr=0.000241237,train_losses.avg=0.109538503
+[iter:319420/400000],lr=0.000241236,train_losses.avg=0.109383166
+[iter:319440/400000],lr=0.000241234,train_losses.avg=0.109320238
+[iter:319460/400000],lr=0.000241232,train_losses.avg=0.109376729
+[iter:319480/400000],lr=0.000241230,train_losses.avg=0.109324731
+[iter:319500/400000],lr=0.000241228,train_losses.avg=0.109155513
+[iter:319520/400000],lr=0.000241227,train_losses.avg=0.109117471
+[iter:319540/400000],lr=0.000241225,train_losses.avg=0.109070480
+[iter:319560/400000],lr=0.000241223,train_losses.avg=0.109087832
+[iter:319580/400000],lr=0.000241221,train_losses.avg=0.108921297
+[iter:319600/400000],lr=0.000241219,train_losses.avg=0.109005548
+[iter:319620/400000],lr=0.000241217,train_losses.avg=0.108940102
+[iter:319640/400000],lr=0.000241216,train_losses.avg=0.109032422
+[iter:319660/400000],lr=0.000241214,train_losses.avg=0.109004229
+[iter:319680/400000],lr=0.000241212,train_losses.avg=0.109053701
+[iter:319700/400000],lr=0.000241210,train_losses.avg=0.109093100
+[iter:319720/400000],lr=0.000241208,train_losses.avg=0.109125689
+[iter:319740/400000],lr=0.000241206,train_losses.avg=0.109198198
+[iter:319760/400000],lr=0.000241205,train_losses.avg=0.109143041
+[iter:319780/400000],lr=0.000241203,train_losses.avg=0.109057069
+[iter:319800/400000],lr=0.000241201,train_losses.avg=0.109013587
+[iter:319820/400000],lr=0.000241199,train_losses.avg=0.108843051
+[iter:319840/400000],lr=0.000241197,train_losses.avg=0.108802959
+[iter:319860/400000],lr=0.000241195,train_losses.avg=0.109000020
+[iter:319880/400000],lr=0.000241193,train_losses.avg=0.109065861
+[iter:319900/400000],lr=0.000241192,train_losses.avg=0.109150290
+[iter:319920/400000],lr=0.000241190,train_losses.avg=0.109087378
+[iter:319940/400000],lr=0.000241188,train_losses.avg=0.109074943
+[iter:319960/400000],lr=0.000241186,train_losses.avg=0.109104328
+[iter:319980/400000],lr=0.000241184,train_losses.avg=0.109064415
+[iter:320000/400000],lr=0.000241182,train_losses.avg=0.109298527
+[iter:320020/400000],lr=0.000241180,train_losses.avg=0.109148681
+[iter:320040/400000],lr=0.000241178,train_losses.avg=0.109155729
+[iter:320060/400000],lr=0.000241177,train_losses.avg=0.109218568
+[iter:320080/400000],lr=0.000241175,train_losses.avg=0.109100379
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.1119675412774086, RMSE: 0.015168443322181702, PNSR:37.397438049316406, SAM: 0.0343107171356678, SID: 0.0001299332216149196
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+net_0032epoch.pth  Removed. 
+ Iter[320096], Epoch[000037], learning rate : 0.000241173, Train MRAE: 0.109044656, Test MRAE: 0.111967541, Test RMSE: 0.015168443, Test PSNR: 37.397438049, SAM: 0.034310717, SID: 0.000129933 
+[iter:320100/400000],lr=0.000241173,train_losses.avg=0.145195574
+[iter:320120/400000],lr=0.000241171,train_losses.avg=0.112351947
+[iter:320140/400000],lr=0.000241169,train_losses.avg=0.112113833
+[iter:320160/400000],lr=0.000241167,train_losses.avg=0.114627138
+[iter:320180/400000],lr=0.000241165,train_losses.avg=0.112498090
+[iter:320200/400000],lr=0.000241163,train_losses.avg=0.111689404
+[iter:320220/400000],lr=0.000241161,train_losses.avg=0.111559518
+[iter:320240/400000],lr=0.000241159,train_losses.avg=0.111550860
+[iter:320260/400000],lr=0.000241157,train_losses.avg=0.112249844
+[iter:320280/400000],lr=0.000241156,train_losses.avg=0.112549797
+[iter:320300/400000],lr=0.000241154,train_losses.avg=0.111375473
+[iter:320320/400000],lr=0.000241152,train_losses.avg=0.110945582
+[iter:320340/400000],lr=0.000241150,train_losses.avg=0.110946685
+[iter:320360/400000],lr=0.000241148,train_losses.avg=0.111242518
+[iter:320380/400000],lr=0.000241146,train_losses.avg=0.110927120
+[iter:320400/400000],lr=0.000241144,train_losses.avg=0.110329315
+[iter:320420/400000],lr=0.000241142,train_losses.avg=0.110575110
+[iter:320440/400000],lr=0.000241140,train_losses.avg=0.110991664
+[iter:320460/400000],lr=0.000241138,train_losses.avg=0.110721163
+[iter:320480/400000],lr=0.000241136,train_losses.avg=0.110539101
+[iter:320500/400000],lr=0.000241134,train_losses.avg=0.110398576
+[iter:320520/400000],lr=0.000241132,train_losses.avg=0.110384159
+[iter:320540/400000],lr=0.000241130,train_losses.avg=0.110052638
+[iter:320560/400000],lr=0.000241128,train_losses.avg=0.109808877
+[iter:320580/400000],lr=0.000241126,train_losses.avg=0.109497644
+[iter:320600/400000],lr=0.000241124,train_losses.avg=0.109388635
+[iter:320620/400000],lr=0.000241122,train_losses.avg=0.109616816
+[iter:320640/400000],lr=0.000241120,train_losses.avg=0.109435603
+[iter:320660/400000],lr=0.000241118,train_losses.avg=0.109464347
+[iter:320680/400000],lr=0.000241116,train_losses.avg=0.109321736
+[iter:320700/400000],lr=0.000241114,train_losses.avg=0.109667838
+[iter:320720/400000],lr=0.000241112,train_losses.avg=0.109419249
+[iter:320740/400000],lr=0.000241111,train_losses.avg=0.109287478
+[iter:320760/400000],lr=0.000241109,train_losses.avg=0.109170385
+[iter:320780/400000],lr=0.000241107,train_losses.avg=0.109349638
+[iter:320800/400000],lr=0.000241105,train_losses.avg=0.109136522
+[iter:320820/400000],lr=0.000241103,train_losses.avg=0.109292336
+[iter:320840/400000],lr=0.000241101,train_losses.avg=0.109137319
+[iter:320860/400000],lr=0.000241098,train_losses.avg=0.109086730
+[iter:320880/400000],lr=0.000241096,train_losses.avg=0.109389663
+[iter:320900/400000],lr=0.000241094,train_losses.avg=0.109269924
+[iter:320920/400000],lr=0.000241092,train_losses.avg=0.109299354
+[iter:320940/400000],lr=0.000241090,train_losses.avg=0.109201655
+[iter:320960/400000],lr=0.000241088,train_losses.avg=0.109090544
+[iter:320980/400000],lr=0.000241086,train_losses.avg=0.108861193
+[iter:321000/400000],lr=0.000241084,train_losses.avg=0.108903162
+[iter:321020/400000],lr=0.000241082,train_losses.avg=0.108655490
+[iter:321040/400000],lr=0.000241080,train_losses.avg=0.108764589
+[iter:321060/400000],lr=0.000241078,train_losses.avg=0.108823158
+[iter:321080/400000],lr=0.000241076,train_losses.avg=0.108829632
+[iter:321100/400000],lr=0.000241074,train_losses.avg=0.108786575
+[iter:321120/400000],lr=0.000241072,train_losses.avg=0.108801559
+[iter:321140/400000],lr=0.000241070,train_losses.avg=0.108757809
+[iter:321160/400000],lr=0.000241068,train_losses.avg=0.108554184
+[iter:321180/400000],lr=0.000241066,train_losses.avg=0.108420715
+[iter:321200/400000],lr=0.000241064,train_losses.avg=0.108359478
+[iter:321220/400000],lr=0.000241062,train_losses.avg=0.108466536
+[iter:321240/400000],lr=0.000241060,train_losses.avg=0.108509772
+[iter:321260/400000],lr=0.000241058,train_losses.avg=0.108528204
+[iter:321280/400000],lr=0.000241056,train_losses.avg=0.108482212
+[iter:321300/400000],lr=0.000241054,train_losses.avg=0.108519301
+[iter:321320/400000],lr=0.000241051,train_losses.avg=0.108555377
+[iter:321340/400000],lr=0.000241049,train_losses.avg=0.108633392
+[iter:321360/400000],lr=0.000241047,train_losses.avg=0.108671322
+[iter:321380/400000],lr=0.000241045,train_losses.avg=0.108588122
+[iter:321400/400000],lr=0.000241043,train_losses.avg=0.108481564
+[iter:321420/400000],lr=0.000241041,train_losses.avg=0.108479552
+[iter:321440/400000],lr=0.000241039,train_losses.avg=0.108515903
+[iter:321460/400000],lr=0.000241037,train_losses.avg=0.108554780
+[iter:321480/400000],lr=0.000241035,train_losses.avg=0.108487010
+[iter:321500/400000],lr=0.000241033,train_losses.avg=0.108330727
+[iter:321520/400000],lr=0.000241031,train_losses.avg=0.108332403
+[iter:321540/400000],lr=0.000241028,train_losses.avg=0.108261831
+[iter:321560/400000],lr=0.000241026,train_losses.avg=0.108320527
+[iter:321580/400000],lr=0.000241024,train_losses.avg=0.108244449
+[iter:321600/400000],lr=0.000241022,train_losses.avg=0.108292475
+[iter:321620/400000],lr=0.000241020,train_losses.avg=0.108311221
+[iter:321640/400000],lr=0.000241018,train_losses.avg=0.108473569
+[iter:321660/400000],lr=0.000241016,train_losses.avg=0.108447559
+[iter:321680/400000],lr=0.000241014,train_losses.avg=0.108443320
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.1085900217294693, RMSE: 0.014987562783062458, PNSR:37.519351959228516, SAM: 0.034123945981264114, SID: 0.00013253591896500438
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+net_0033epoch.pth  Removed. 
+ Iter[321696], Epoch[000038], learning rate : 0.000241012, Train MRAE: 0.108423881, Test MRAE: 0.108590022, Test RMSE: 0.014987563, Test PSNR: 37.519351959, SAM: 0.034123946, SID: 0.000132536 
+[iter:321700/400000],lr=0.000241011,train_losses.avg=0.095132142
+[iter:321720/400000],lr=0.000241009,train_losses.avg=0.107915029
+[iter:321740/400000],lr=0.000241007,train_losses.avg=0.108543746
+[iter:321760/400000],lr=0.000241005,train_losses.avg=0.106507815
+[iter:321780/400000],lr=0.000241003,train_losses.avg=0.107769877
+[iter:321800/400000],lr=0.000241001,train_losses.avg=0.108644016
+[iter:321820/400000],lr=0.000240999,train_losses.avg=0.109068222
+[iter:321840/400000],lr=0.000240996,train_losses.avg=0.108502001
+[iter:321860/400000],lr=0.000240994,train_losses.avg=0.107855558
+[iter:321880/400000],lr=0.000240992,train_losses.avg=0.108852319
+[iter:321900/400000],lr=0.000240990,train_losses.avg=0.108658813
+[iter:321920/400000],lr=0.000240988,train_losses.avg=0.109354354
+[iter:321940/400000],lr=0.000240986,train_losses.avg=0.109753288
+[iter:321960/400000],lr=0.000240983,train_losses.avg=0.109841302
+[iter:321980/400000],lr=0.000240981,train_losses.avg=0.109122261
+[iter:322000/400000],lr=0.000240979,train_losses.avg=0.109302357
+[iter:322020/400000],lr=0.000240977,train_losses.avg=0.109033041
+[iter:322040/400000],lr=0.000240975,train_losses.avg=0.108738557
+[iter:322060/400000],lr=0.000240973,train_losses.avg=0.108196914
+[iter:322080/400000],lr=0.000240970,train_losses.avg=0.108497523
+[iter:322100/400000],lr=0.000240968,train_losses.avg=0.108567916
+[iter:322120/400000],lr=0.000240966,train_losses.avg=0.109168507
+[iter:322140/400000],lr=0.000240964,train_losses.avg=0.109010085
+[iter:322160/400000],lr=0.000240962,train_losses.avg=0.108642295
+[iter:322180/400000],lr=0.000240959,train_losses.avg=0.108642079
+[iter:322200/400000],lr=0.000240957,train_losses.avg=0.109007649
+[iter:322220/400000],lr=0.000240955,train_losses.avg=0.109109387
+[iter:322240/400000],lr=0.000240953,train_losses.avg=0.109155133
+[iter:322260/400000],lr=0.000240951,train_losses.avg=0.108991347
+[iter:322280/400000],lr=0.000240948,train_losses.avg=0.108926035
+[iter:322300/400000],lr=0.000240946,train_losses.avg=0.108872205
+[iter:322320/400000],lr=0.000240944,train_losses.avg=0.108782478
+[iter:322340/400000],lr=0.000240942,train_losses.avg=0.109068260
+[iter:322360/400000],lr=0.000240939,train_losses.avg=0.109163627
+[iter:322380/400000],lr=0.000240937,train_losses.avg=0.108899616
+[iter:322400/400000],lr=0.000240935,train_losses.avg=0.108820125
+[iter:322420/400000],lr=0.000240933,train_losses.avg=0.108605713
+[iter:322440/400000],lr=0.000240930,train_losses.avg=0.108685516
+[iter:322460/400000],lr=0.000240928,train_losses.avg=0.108963206
+[iter:322480/400000],lr=0.000240926,train_losses.avg=0.108822554
+[iter:322500/400000],lr=0.000240924,train_losses.avg=0.108731538
+[iter:322520/400000],lr=0.000240921,train_losses.avg=0.108737059
+[iter:322540/400000],lr=0.000240919,train_losses.avg=0.108779408
+[iter:322560/400000],lr=0.000240917,train_losses.avg=0.108757883
+[iter:322580/400000],lr=0.000240915,train_losses.avg=0.108857356
+[iter:322600/400000],lr=0.000240912,train_losses.avg=0.108955629
+[iter:322620/400000],lr=0.000240910,train_losses.avg=0.108670264
+[iter:322640/400000],lr=0.000240908,train_losses.avg=0.108734943
+[iter:322660/400000],lr=0.000240906,train_losses.avg=0.108752400
+[iter:322680/400000],lr=0.000240903,train_losses.avg=0.108687967
+[iter:322700/400000],lr=0.000240901,train_losses.avg=0.108579062
+[iter:322720/400000],lr=0.000240899,train_losses.avg=0.108571529
+[iter:322740/400000],lr=0.000240896,train_losses.avg=0.108637668
+[iter:322760/400000],lr=0.000240894,train_losses.avg=0.108726695
+[iter:322780/400000],lr=0.000240892,train_losses.avg=0.108566321
+[iter:322800/400000],lr=0.000240890,train_losses.avg=0.108660489
+[iter:322820/400000],lr=0.000240887,train_losses.avg=0.108584434
+[iter:322840/400000],lr=0.000240885,train_losses.avg=0.108582631
+[iter:322860/400000],lr=0.000240883,train_losses.avg=0.108468167
+[iter:322880/400000],lr=0.000240880,train_losses.avg=0.108318992
+[iter:322900/400000],lr=0.000240878,train_losses.avg=0.108411238
+[iter:322920/400000],lr=0.000240876,train_losses.avg=0.108432673
+[iter:322940/400000],lr=0.000240873,train_losses.avg=0.108475916
+[iter:322960/400000],lr=0.000240871,train_losses.avg=0.108615398
+[iter:322980/400000],lr=0.000240869,train_losses.avg=0.108503021
+[iter:323000/400000],lr=0.000240866,train_losses.avg=0.108557016
+[iter:323020/400000],lr=0.000240864,train_losses.avg=0.108489521
+[iter:323040/400000],lr=0.000240862,train_losses.avg=0.108521260
+[iter:323060/400000],lr=0.000240859,train_losses.avg=0.108646974
+[iter:323080/400000],lr=0.000240857,train_losses.avg=0.108561240
+[iter:323100/400000],lr=0.000240855,train_losses.avg=0.108446956
+[iter:323120/400000],lr=0.000240852,train_losses.avg=0.108480737
+[iter:323140/400000],lr=0.000240850,train_losses.avg=0.108381316
+[iter:323160/400000],lr=0.000240848,train_losses.avg=0.108288370
+[iter:323180/400000],lr=0.000240845,train_losses.avg=0.108329445
+[iter:323200/400000],lr=0.000240843,train_losses.avg=0.108247496
+[iter:323220/400000],lr=0.000240841,train_losses.avg=0.108270451
+[iter:323240/400000],lr=0.000240838,train_losses.avg=0.108413495
+[iter:323260/400000],lr=0.000240836,train_losses.avg=0.108462594
+[iter:323280/400000],lr=0.000240834,train_losses.avg=0.108348407
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.10892059653997421, RMSE: 0.0151945436373353, PNSR:37.42521667480469, SAM: 0.03405611217021942, SID: 0.00013281633437145501
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+net_0034epoch.pth  Removed. 
+ Iter[323296], Epoch[000039], learning rate : 0.000240832, Train MRAE: 0.108255215, Test MRAE: 0.108920597, Test RMSE: 0.015194544, Test PSNR: 37.425216675, SAM: 0.034056112, SID: 0.000132816 
+[iter:323300/400000],lr=0.000240831,train_losses.avg=0.116441295
+[iter:323320/400000],lr=0.000240829,train_losses.avg=0.105333000
+[iter:323340/400000],lr=0.000240826,train_losses.avg=0.105898142
+[iter:323360/400000],lr=0.000240824,train_losses.avg=0.105733819
+[iter:323380/400000],lr=0.000240822,train_losses.avg=0.107493073
+[iter:323400/400000],lr=0.000240819,train_losses.avg=0.107420348
+[iter:323420/400000],lr=0.000240817,train_losses.avg=0.106526151
+[iter:323440/400000],lr=0.000240815,train_losses.avg=0.107418589
+[iter:323460/400000],lr=0.000240812,train_losses.avg=0.107181661
+[iter:323480/400000],lr=0.000240810,train_losses.avg=0.107334368
+[iter:323500/400000],lr=0.000240807,train_losses.avg=0.108189046
+[iter:323520/400000],lr=0.000240805,train_losses.avg=0.108626753
+[iter:323540/400000],lr=0.000240803,train_losses.avg=0.107640415
+[iter:323560/400000],lr=0.000240800,train_losses.avg=0.107063629
+[iter:323580/400000],lr=0.000240798,train_losses.avg=0.107071891
+[iter:323600/400000],lr=0.000240795,train_losses.avg=0.107039228
+[iter:323620/400000],lr=0.000240793,train_losses.avg=0.106872395
+[iter:323640/400000],lr=0.000240791,train_losses.avg=0.106787816
+[iter:323660/400000],lr=0.000240788,train_losses.avg=0.107145786
+[iter:323680/400000],lr=0.000240786,train_losses.avg=0.107147560
+[iter:323700/400000],lr=0.000240783,train_losses.avg=0.106479108
+[iter:323720/400000],lr=0.000240781,train_losses.avg=0.106401876
+[iter:323740/400000],lr=0.000240778,train_losses.avg=0.106075421
+[iter:323760/400000],lr=0.000240776,train_losses.avg=0.106219381
+[iter:323780/400000],lr=0.000240773,train_losses.avg=0.105963372
+[iter:323800/400000],lr=0.000240771,train_losses.avg=0.106146753
+[iter:323820/400000],lr=0.000240769,train_losses.avg=0.106049210
+[iter:323840/400000],lr=0.000240766,train_losses.avg=0.105862401
+[iter:323860/400000],lr=0.000240764,train_losses.avg=0.105650254
+[iter:323880/400000],lr=0.000240761,train_losses.avg=0.105683573
+[iter:323900/400000],lr=0.000240759,train_losses.avg=0.105676800
+[iter:323920/400000],lr=0.000240756,train_losses.avg=0.105495274
+[iter:323940/400000],lr=0.000240754,train_losses.avg=0.105654784
+[iter:323960/400000],lr=0.000240751,train_losses.avg=0.105933391
+[iter:323980/400000],lr=0.000240749,train_losses.avg=0.105979644
+[iter:324000/400000],lr=0.000240746,train_losses.avg=0.106148854
+[iter:324020/400000],lr=0.000240744,train_losses.avg=0.106159173
+[iter:324040/400000],lr=0.000240741,train_losses.avg=0.106279999
+[iter:324060/400000],lr=0.000240739,train_losses.avg=0.106542416
+[iter:324080/400000],lr=0.000240737,train_losses.avg=0.106714919
+[iter:324100/400000],lr=0.000240734,train_losses.avg=0.106684595
+[iter:324120/400000],lr=0.000240732,train_losses.avg=0.106686868
+[iter:324140/400000],lr=0.000240729,train_losses.avg=0.106592074
+[iter:324160/400000],lr=0.000240727,train_losses.avg=0.106675535
+[iter:324180/400000],lr=0.000240724,train_losses.avg=0.106799603
+[iter:324200/400000],lr=0.000240722,train_losses.avg=0.106795415
+[iter:324220/400000],lr=0.000240719,train_losses.avg=0.106673189
+[iter:324240/400000],lr=0.000240717,train_losses.avg=0.106757268
+[iter:324260/400000],lr=0.000240714,train_losses.avg=0.106730670
+[iter:324280/400000],lr=0.000240712,train_losses.avg=0.106719114
+[iter:324300/400000],lr=0.000240709,train_losses.avg=0.106604703
+[iter:324320/400000],lr=0.000240706,train_losses.avg=0.106798746
+[iter:324340/400000],lr=0.000240704,train_losses.avg=0.106763579
+[iter:324360/400000],lr=0.000240701,train_losses.avg=0.106853247
+[iter:324380/400000],lr=0.000240699,train_losses.avg=0.106842205
+[iter:324400/400000],lr=0.000240696,train_losses.avg=0.106906869
+[iter:324420/400000],lr=0.000240694,train_losses.avg=0.106925741
+[iter:324440/400000],lr=0.000240691,train_losses.avg=0.106967889
+[iter:324460/400000],lr=0.000240689,train_losses.avg=0.106798276
+[iter:324480/400000],lr=0.000240686,train_losses.avg=0.106732123
+[iter:324500/400000],lr=0.000240684,train_losses.avg=0.106782794
+[iter:324520/400000],lr=0.000240681,train_losses.avg=0.106890053
+[iter:324540/400000],lr=0.000240679,train_losses.avg=0.106828630
+[iter:324560/400000],lr=0.000240676,train_losses.avg=0.106914267
+[iter:324580/400000],lr=0.000240673,train_losses.avg=0.106782891
+[iter:324600/400000],lr=0.000240671,train_losses.avg=0.106742062
+[iter:324620/400000],lr=0.000240668,train_losses.avg=0.106858142
+[iter:324640/400000],lr=0.000240666,train_losses.avg=0.106827989
+[iter:324660/400000],lr=0.000240663,train_losses.avg=0.106814697
+[iter:324680/400000],lr=0.000240661,train_losses.avg=0.106727950
+[iter:324700/400000],lr=0.000240658,train_losses.avg=0.106825672
+[iter:324720/400000],lr=0.000240655,train_losses.avg=0.106851459
+[iter:324740/400000],lr=0.000240653,train_losses.avg=0.106944002
+[iter:324760/400000],lr=0.000240650,train_losses.avg=0.106964774
+[iter:324780/400000],lr=0.000240648,train_losses.avg=0.107085325
+[iter:324800/400000],lr=0.000240645,train_losses.avg=0.107140809
+[iter:324820/400000],lr=0.000240643,train_losses.avg=0.107236423
+[iter:324840/400000],lr=0.000240640,train_losses.avg=0.107342221
+[iter:324860/400000],lr=0.000240637,train_losses.avg=0.107444137
+[iter:324880/400000],lr=0.000240635,train_losses.avg=0.107537523
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.10888997465372086, RMSE: 0.015171408653259277, PNSR:37.367889404296875, SAM: 0.033664770424366, SID: 0.0001328938960796222
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+net_0035epoch.pth  Removed. 
+ Iter[324896], Epoch[000040], learning rate : 0.000240633, Train MRAE: 0.107538052, Test MRAE: 0.108889975, Test RMSE: 0.015171409, Test PSNR: 37.367889404, SAM: 0.033664770, SID: 0.000132894 
+[iter:324900/400000],lr=0.000240632,train_losses.avg=0.102133654
+[iter:324920/400000],lr=0.000240630,train_losses.avg=0.103286132
+[iter:324940/400000],lr=0.000240627,train_losses.avg=0.107187025
+[iter:324960/400000],lr=0.000240624,train_losses.avg=0.105725333
+[iter:324980/400000],lr=0.000240622,train_losses.avg=0.108218968
+[iter:325000/400000],lr=0.000240619,train_losses.avg=0.107517175
+[iter:325020/400000],lr=0.000240616,train_losses.avg=0.108357653
+[iter:325040/400000],lr=0.000240614,train_losses.avg=0.109730534
+[iter:325060/400000],lr=0.000240611,train_losses.avg=0.109156869
+[iter:325080/400000],lr=0.000240609,train_losses.avg=0.108537346
+[iter:325100/400000],lr=0.000240606,train_losses.avg=0.107548721
+[iter:325120/400000],lr=0.000240603,train_losses.avg=0.107358046
+[iter:325140/400000],lr=0.000240601,train_losses.avg=0.107614502
+[iter:325160/400000],lr=0.000240598,train_losses.avg=0.107477039
+[iter:325180/400000],lr=0.000240595,train_losses.avg=0.107535936
+[iter:325200/400000],lr=0.000240593,train_losses.avg=0.107546873
+[iter:325220/400000],lr=0.000240590,train_losses.avg=0.107788078
+[iter:325240/400000],lr=0.000240587,train_losses.avg=0.107793763
+[iter:325260/400000],lr=0.000240585,train_losses.avg=0.107785530
+[iter:325280/400000],lr=0.000240582,train_losses.avg=0.107565314
+[iter:325300/400000],lr=0.000240579,train_losses.avg=0.107088163
+[iter:325320/400000],lr=0.000240577,train_losses.avg=0.107057907
+[iter:325340/400000],lr=0.000240574,train_losses.avg=0.107733533
+[iter:325360/400000],lr=0.000240571,train_losses.avg=0.108084902
+[iter:325380/400000],lr=0.000240569,train_losses.avg=0.108134799
+[iter:325400/400000],lr=0.000240566,train_losses.avg=0.107991941
+[iter:325420/400000],lr=0.000240563,train_losses.avg=0.108023807
+[iter:325440/400000],lr=0.000240561,train_losses.avg=0.108047403
+[iter:325460/400000],lr=0.000240558,train_losses.avg=0.108007833
+[iter:325480/400000],lr=0.000240555,train_losses.avg=0.107722178
+[iter:325500/400000],lr=0.000240553,train_losses.avg=0.107579373
+[iter:325520/400000],lr=0.000240550,train_losses.avg=0.107749790
+[iter:325540/400000],lr=0.000240547,train_losses.avg=0.107775316
+[iter:325560/400000],lr=0.000240545,train_losses.avg=0.108180203
+[iter:325580/400000],lr=0.000240542,train_losses.avg=0.108325936
+[iter:325600/400000],lr=0.000240539,train_losses.avg=0.108045503
+[iter:325620/400000],lr=0.000240536,train_losses.avg=0.107906848
+[iter:325640/400000],lr=0.000240534,train_losses.avg=0.107691303
+[iter:325660/400000],lr=0.000240531,train_losses.avg=0.107620127
+[iter:325680/400000],lr=0.000240528,train_losses.avg=0.107483231
+[iter:325700/400000],lr=0.000240526,train_losses.avg=0.107521474
+[iter:325720/400000],lr=0.000240523,train_losses.avg=0.107376553
+[iter:325740/400000],lr=0.000240520,train_losses.avg=0.107449584
+[iter:325760/400000],lr=0.000240517,train_losses.avg=0.107274957
+[iter:325780/400000],lr=0.000240515,train_losses.avg=0.107470252
+[iter:325800/400000],lr=0.000240512,train_losses.avg=0.107196949
+[iter:325820/400000],lr=0.000240509,train_losses.avg=0.107134417
+[iter:325840/400000],lr=0.000240506,train_losses.avg=0.107430965
+[iter:325860/400000],lr=0.000240504,train_losses.avg=0.107589766
+[iter:325880/400000],lr=0.000240501,train_losses.avg=0.107514150
+[iter:325900/400000],lr=0.000240498,train_losses.avg=0.107490331
+[iter:325920/400000],lr=0.000240495,train_losses.avg=0.107474416
+[iter:325940/400000],lr=0.000240493,train_losses.avg=0.107378803
+[iter:325960/400000],lr=0.000240490,train_losses.avg=0.107302785
+[iter:325980/400000],lr=0.000240487,train_losses.avg=0.107285649
+[iter:326000/400000],lr=0.000240484,train_losses.avg=0.107141905
+[iter:326020/400000],lr=0.000240482,train_losses.avg=0.107116342
+[iter:326040/400000],lr=0.000240479,train_losses.avg=0.107058115
+[iter:326060/400000],lr=0.000240476,train_losses.avg=0.107017487
+[iter:326080/400000],lr=0.000240473,train_losses.avg=0.107082985
+[iter:326100/400000],lr=0.000240470,train_losses.avg=0.107016034
+[iter:326120/400000],lr=0.000240468,train_losses.avg=0.106898725
+[iter:326140/400000],lr=0.000240465,train_losses.avg=0.106910102
+[iter:326160/400000],lr=0.000240462,train_losses.avg=0.107071623
+[iter:326180/400000],lr=0.000240459,train_losses.avg=0.107277922
+[iter:326200/400000],lr=0.000240457,train_losses.avg=0.107243352
+[iter:326220/400000],lr=0.000240454,train_losses.avg=0.107209586
+[iter:326240/400000],lr=0.000240451,train_losses.avg=0.107315257
+[iter:326260/400000],lr=0.000240448,train_losses.avg=0.107390918
+[iter:326280/400000],lr=0.000240445,train_losses.avg=0.107438676
+[iter:326300/400000],lr=0.000240443,train_losses.avg=0.107406005
+[iter:326320/400000],lr=0.000240440,train_losses.avg=0.107365221
+[iter:326340/400000],lr=0.000240437,train_losses.avg=0.107228778
+[iter:326360/400000],lr=0.000240434,train_losses.avg=0.107142225
+[iter:326380/400000],lr=0.000240431,train_losses.avg=0.107144460
+[iter:326400/400000],lr=0.000240428,train_losses.avg=0.107120164
+[iter:326420/400000],lr=0.000240426,train_losses.avg=0.106993809
+[iter:326440/400000],lr=0.000240423,train_losses.avg=0.107103176
+[iter:326460/400000],lr=0.000240420,train_losses.avg=0.107209399
+[iter:326480/400000],lr=0.000240417,train_losses.avg=0.107299499
+SpectralAngleMapper reseted
+Peak Signal Noise Ratio reseted
+MRAE:0.11073853820562363, RMSE: 0.01529125776141882, PNSR:37.24949264526367, SAM: 0.03451359272003174, SID: 0.00013456268061418086
+Saving to /work3/s212645/Spectral_Reconstruction/checkpoint/DTN/
+net_0036epoch.pth  Removed. 
+ Iter[326496], Epoch[000041], learning rate : 0.000240415, Train MRAE: 0.107179791, Test MRAE: 0.110738538, Test RMSE: 0.015291258, Test PSNR: 37.249492645, SAM: 0.034513593, SID: 0.000134563 
+[iter:326500/400000],lr=0.000240414,train_losses.avg=0.113652609
+[iter:326520/400000],lr=0.000240411,train_losses.avg=0.112874143
+[iter:326540/400000],lr=0.000240409,train_losses.avg=0.104545489
+[iter:326560/400000],lr=0.000240406,train_losses.avg=0.103762507
+[iter:326580/400000],lr=0.000240403,train_losses.avg=0.103079274
+[iter:326600/400000],lr=0.000240400,train_losses.avg=0.103496082
+[iter:326620/400000],lr=0.000240397,train_losses.avg=0.104173169
+[iter:326640/400000],lr=0.000240394,train_losses.avg=0.104963787
+[iter:326660/400000],lr=0.000240391,train_losses.avg=0.104997911
+[iter:326680/400000],lr=0.000240389,train_losses.avg=0.105403185
+[iter:326700/400000],lr=0.000240386,train_losses.avg=0.106042288
+[iter:326720/400000],lr=0.000240383,train_losses.avg=0.106664442
+[iter:326740/400000],lr=0.000240380,train_losses.avg=0.107286431
+[iter:326760/400000],lr=0.000240377,train_losses.avg=0.106357247
+[iter:326780/400000],lr=0.000240374,train_losses.avg=0.106802255
+[iter:326800/400000],lr=0.000240371,train_losses.avg=0.106666878
+[iter:326820/400000],lr=0.000240368,train_losses.avg=0.106940553
+[iter:326840/400000],lr=0.000240366,train_losses.avg=0.107542023
+[iter:326860/400000],lr=0.000240363,train_losses.avg=0.107311659
+[iter:326880/400000],lr=0.000240360,train_losses.avg=0.107298329
+[iter:326900/400000],lr=0.000240357,train_losses.avg=0.107168846
+[iter:326920/400000],lr=0.000240354,train_losses.avg=0.107448004
+[iter:326940/400000],lr=0.000240351,train_losses.avg=0.107387431
+[iter:326960/400000],lr=0.000240348,train_losses.avg=0.107418060
+[iter:326980/400000],lr=0.000240345,train_losses.avg=0.107117966
+[iter:327000/400000],lr=0.000240342,train_losses.avg=0.107417852
+[iter:327020/400000],lr=0.000240339,train_losses.avg=0.107823268
+[iter:327040/400000],lr=0.000240336,train_losses.avg=0.107549667
+[iter:327060/400000],lr=0.000240334,train_losses.avg=0.107398525
+[iter:327080/400000],lr=0.000240331,train_losses.avg=0.107247613
+[iter:327100/400000],lr=0.000240328,train_losses.avg=0.107183985
+[iter:327120/400000],lr=0.000240325,train_losses.avg=0.107207626
+[iter:327140/400000],lr=0.000240322,train_losses.avg=0.107090399
+[iter:327160/400000],lr=0.000240319,train_losses.avg=0.106908165
+[iter:327180/400000],lr=0.000240316,train_losses.avg=0.107384078
+[iter:327200/400000],lr=0.000240313,train_losses.avg=0.107388057
+[iter:327220/400000],lr=0.000240310,train_losses.avg=0.107435547
+[iter:327240/400000],lr=0.000240307,train_losses.avg=0.107655063
+[iter:327260/400000],lr=0.000240304,train_losses.avg=0.107501596
+[iter:327280/400000],lr=0.000240301,train_losses.avg=0.107579991
+[iter:327300/400000],lr=0.000240298,train_losses.avg=0.107525617
+[iter:327320/400000],lr=0.000240295,train_losses.avg=0.107365116
+[iter:327340/400000],lr=0.000240292,train_losses.avg=0.107254170
+[iter:327360/400000],lr=0.000240289,train_losses.avg=0.107390314
+[iter:327380/400000],lr=0.000240286,train_losses.avg=0.107341290
+[iter:327400/400000],lr=0.000240283,train_losses.avg=0.107487403
+[iter:327420/400000],lr=0.000240280,train_losses.avg=0.107499421
+[iter:327440/400000],lr=0.000240277,train_losses.avg=0.107555427
+[iter:327460/400000],lr=0.000240274,train_losses.avg=0.107627802
+[iter:327480/400000],lr=0.000240271,train_losses.avg=0.107667692
+[iter:327500/400000],lr=0.000240269,train_losses.avg=0.107652731
+[iter:327520/400000],lr=0.000240266,train_losses.avg=0.107510202
+[iter:327540/400000],lr=0.000240263,train_losses.avg=0.107658893
+[iter:327560/400000],lr=0.000240260,train_losses.avg=0.107455291
+[iter:327580/400000],lr=0.000240257,train_losses.avg=0.107353322
+[iter:327600/400000],lr=0.000240254,train_losses.avg=0.107288793
+[iter:327620/400000],lr=0.000240251,train_losses.avg=0.107270978
+[iter:327640/400000],lr=0.000240248,train_losses.avg=0.107137099
+[iter:327660/400000],lr=0.000240245,train_losses.avg=0.107090496
+[iter:327680/400000],lr=0.000240242,train_losses.avg=0.107089795
+[iter:327700/400000],lr=0.000240238,train_losses.avg=0.107075460
+[iter:327720/400000],lr=0.000240235,train_losses.avg=0.107067019
+[iter:327740/400000],lr=0.000240232,train_losses.avg=0.106869861
+[iter:327760/400000],lr=0.000240229,train_losses.avg=0.106771268
+[iter:327780/400000],lr=0.000240226,train_losses.avg=0.106773220
