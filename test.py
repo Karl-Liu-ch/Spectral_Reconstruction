@@ -83,7 +83,7 @@ def test(Model, modelname, noise = False):
             output = Model.G(z)
             for j in range(output.shape[0]):
                 mat = {}
-                mat['cube'] = np.transpose(output[j,:,:,:].cpu().numpy(), [1,2,0])
+                mat['cube'] = np.transpose(target[j,:,:,:].cpu().numpy(), [1,2,0])
                 mat['rgb'] = np.transpose(input[j,:,:,:].cpu().numpy(), [1,2,0])
                 real = mat['rgb']
                 real = (real - real.min()) / (real.max()-real.min())
@@ -128,12 +128,30 @@ if __name__ == '__main__':
     f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
     f.write('\n')
     
-    # modelname = 'D2GAN'
-    # model = D2GAN(opt)
-    # model.load_checkpoint()
-    # mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
-    # print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    # f.write(modelname+':\n')
-    # f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    # f.write('\n')
-    # f.close()
+    modelname = 'D2GAN'
+    model = D2GAN(opt)
+    model.load_checkpoint()
+    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
+    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write(modelname+':\n')
+    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write('\n')
+    
+    modelname = 'SNCWGANDenseNet'
+    model = SNCWGANDenseNet(opt)
+    model.load_checkpoint()
+    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
+    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write(modelname+':\n')
+    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write('\n')
+    
+    modelname = 'SNCWGAN'
+    model = SNCWGAN(opt)
+    model.load_checkpoint()
+    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
+    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write(modelname+':\n')
+    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    f.write('\n')
+    f.close()
