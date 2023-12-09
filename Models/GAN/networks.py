@@ -15,6 +15,7 @@ from torch.autograd import Variable
 from torch import autograd
 import functools
 from Models.GAN.HSCNN_Plus import HSCNN_Plus
+from Models.GAN.SpectralNormalization import *
 
 class UnetGenerator(nn.Module):
     def __init__(self, input_nc, output_nc, num_downs = 6, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks = 0):
@@ -344,52 +345,125 @@ class ResnetBlock(nn.Module):
         """Forward function (with skip connections)"""
         out = x + self.conv_block(x)  # add skip connections
         return out
-    
-class SNConv2d(nn.Module):
-    def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        kernel_size = 1,
-        stride = 1,
-        padding = 0,
-        dilation = 1,
-        groups: int = 1,
-        bias: bool = True,
-        padding_mode: str = 'zeros',  # TODO: refine this type
-        device=None,
-        dtype=None
-    ):
-        super().__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, 
-        dilation = 1, groups = 1, bias=bias)
-        nn.init.xavier_uniform_(self.conv.weight.data, 1.)
-        
-    def forward(self, input):
-        return self.conv(input)
 
-class SNConvTranspose(nn.Module):
+class PreNorm(nn.Module):
+    def __init__(self, dim, fn):
+        super().__init__()
+        self.fn = fn
+        self.norm = nn.LayerNorm(dim)
+
+    def forward(self, x, *args, **kwargs):
+        x = self.norm(x)
+        return self.fn(x, *args, **kwargs)
+
+
+class GELU(nn.Module):
+    def forward(self, x):
+        return F.gelu(x)
+
+def conv(in_channels, out_channels, kernel_size, bias=False, padding = 1, stride = 1):
+    return SNConv2d(
+        in_channels, out_channels, kernel_size,
+        padding=(kernel_size//2), bias=bias, stride=stride)
+
+def shift_back(inputs,step=2):          # input [bs,28,256,310]  output [bs, 28, 256, 256]
+    [bs, nC, row, col] = inputs.shape
+    down_sample = 256//row
+    step = float(step)/float(down_sample*down_sample)
+    out_col = row
+    for i in range(nC):
+        inputs[:,i,:,:out_col] = \
+            inputs[:,i,:,int(step*i):int(step*i)+out_col]
+    return inputs[:, :, :, :out_col]
+
+class MS_MSA(nn.Module):
     def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        kernel_size = 1,
-        stride = 1,
-        padding = 0,
-        dilation = 1,
-        groups: int = 1,
-        bias: bool = True,
-        padding_mode: str = 'zeros',  # TODO: refine this type
-        device=None,
-        dtype=None
+            self,
+            dim,
+            dim_head,
+            heads,
     ):
         super().__init__()
-        self.conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, 
-        dilation = 1, groups = 1, bias=bias)
-        nn.init.xavier_uniform_(self.conv.weight.data, 1.)
-        
-    def forward(self, input):
-        return self.conv(input)
+        self.num_heads = heads
+        self.dim_head = dim_head
+        self.to_q = SNConv2d(dim, dim_head * heads, bias=False)
+        self.to_k = SNConv2d(dim, dim_head * heads, bias=False)
+        self.to_v = SNConv2d(dim, dim_head * heads, bias=False)
+        self.rescale = nn.Parameter(torch.ones(heads, 1, 1))
+        self.proj = SNConv2d(dim_head * heads, dim, bias=True)
+        self.dim = dim
+
+    def forward(self, x_in):
+        b, c, h, w = x_in.shape
+        x = x_in.clone()
+        q_inp = self.to_q(x).permute(0, 2, 3, 1).reshape(b,h*w,c)
+        k_inp = self.to_k(x).permute(0, 2, 3, 1).reshape(b,h*w,c)
+        v_inp = self.to_v(x).permute(0, 2, 3, 1).reshape(b,h*w,c)
+        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h=self.num_heads),
+                                (q_inp, k_inp, v_inp))
+        v = v
+        # q: b,heads,hw,c
+        q = q.transpose(-2, -1)
+        k = k.transpose(-2, -1)
+        v = v.transpose(-2, -1)
+        q = F.normalize(q, dim=-1, p=2)
+        k = F.normalize(k, dim=-1, p=2)
+        attn = (k @ q.transpose(-2, -1))   # A = K^T*Q
+        attn = attn * self.rescale
+        attn = attn.softmax(dim=-1)
+        x = attn @ v   # b,heads,d,hw
+        x = x.reshape(b, self.num_heads * self.dim_head, h, w)
+        out_c = self.proj(x)
+        out = out_c + x_in
+
+        return out
+
+class FeedForward(nn.Module):
+    def __init__(self, dim, mult=4):
+        super().__init__()
+        self.net = nn.Sequential(
+            SNConv2d(dim, dim * mult, 1, 1, bias=False),
+            GELU(),
+            SNConv2d(dim * mult, dim * mult, 3, 1, 1, bias=False, groups=dim * mult),
+            GELU(),
+            SNConv2d(dim * mult, dim, 1, 1, bias=False),
+        )
+
+    def forward(self, x):
+        """
+        x: [b,h,w,c]
+        return out: [b,h,w,c]
+        """
+        out = self.net(x)
+        return out
+
+class SN_MSAB(nn.Module):
+    def __init__(
+            self,
+            dim,
+            dim_head,
+            heads,
+            num_blocks,
+    ):
+        super().__init__()
+        self.blocks = nn.ModuleList([])
+        for _ in range(num_blocks):
+            self.blocks.append(nn.ModuleList([
+                MS_MSA(dim=dim, dim_head=dim_head, heads=heads),
+                FeedForward(dim=dim)
+            ]))
+
+    def forward(self, x):
+        """
+        x: [b,c,h,w]
+        return out: [b,c,h,w]
+        """
+        # x = x.permute(0, 2, 3, 1)
+        for (attn, ff) in self.blocks:
+            x = attn(x) + x
+            x = ff(x) + x
+        # out = x.permute(0, 3, 1, 2)
+        return x
 
 class SN_NLayerDiscriminator(nn.Module):
     def __init__(self, input_nc, ndf=64, n_layers=3):
@@ -449,48 +523,8 @@ class SNPixelDiscriminator(nn.Module):
         """Standard forward."""
         return self.net(input)
 
-
-class SNResnetBlock(nn.Module):
-    def __init__(self, dim, padding_type, use_dropout, use_bias):
-        super(SNResnetBlock, self).__init__()
-        self.conv_block = self.build_conv_block(dim, padding_type, use_dropout, use_bias)
-
-    def build_conv_block(self, dim, padding_type, use_dropout, use_bias):
-        conv_block = []
-        p = 0
-        if padding_type == 'reflect':
-            conv_block += [nn.ReflectionPad2d(1)]
-        elif padding_type == 'replicate':
-            conv_block += [nn.ReplicationPad2d(1)]
-        elif padding_type == 'zero':
-            p = 1
-        else:
-            raise NotImplementedError('padding [%s] is not implemented' % padding_type)
-
-        conv_block += [SNConv2d(dim, dim, kernel_size=3, padding=p, bias=use_bias), nn.ReLU(True)]
-        if use_dropout:
-            conv_block += [nn.Dropout(0.5)]
-
-        p = 0
-        if padding_type == 'reflect':
-            conv_block += [nn.ReflectionPad2d(1)]
-        elif padding_type == 'replicate':
-            conv_block += [nn.ReplicationPad2d(1)]
-        elif padding_type == 'zero':
-            p = 1
-        else:
-            raise NotImplementedError('padding [%s] is not implemented' % padding_type)
-        conv_block += [SNConv2d(dim, dim, kernel_size=3, padding=p, bias=use_bias)]
-
-        return nn.Sequential(*conv_block)
-
-    def forward(self, x):
-        """Forward function (with skip connections)"""
-        out = x + self.conv_block(x)  # add skip connections
-        return out
-    
 class SNResnetDiscriminator(nn.Module):
-    def __init__(self, input_nums, n_blocks=6):
+    def __init__(self, input_nums, n_layer=6):
         super().__init__()
         def ResBlock(input_nums, output_nums, n_blocks = 1):
             layer = []
@@ -530,6 +564,29 @@ class DenseLayer(nn.Module):
         
     def forward(self, input):
         return torch.concat([input, self.Net(input)], dim=1)
+
+class SNTransformDiscriminator(SNResnetDiscriminator):
+    def __init__(self, input_nums = 34, n_layer = 3):
+        super().__init__(input_nums = 34, n_layer = 3)
+        def ResBlock(dim, input_nums, output_nums, n_blocks = 1):
+            layer = []
+            layer += [SN_MSAB(input_nums, dim, input_nums // dim, n_blocks)]
+            layer.append(SNConv2d(input_nums, output_nums, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)))
+            layer.append(nn.ReLU(True))
+            return layer
+        
+        model = []
+        model += ResBlock(input_nums, input_nums,  input_nums, n_blocks=3)
+        new_ch = input_nums
+        for i in range(n_layer):
+            prev_ch = new_ch
+            new_ch = prev_ch * 2
+            model += ResBlock(input_nums, prev_ch, new_ch, n_blocks=3)
+        
+        model += [ SNConv2d(new_ch, 1, kernel_size=(4, 4), stride=(1, 1), padding=(0, 0)),
+                    nn.AdaptiveAvgPool2d((1, 1)), 
+                    nn.Flatten() ]
+        self.Net = nn.Sequential(*model)
 
 class DenseBlock(nn.Module):
     def __init__(self, 
@@ -613,19 +670,17 @@ class DensenetGenerator(nn.Module):
         
     def forward(self, input):
         return self.Net(input)
+
+class Spectral_Discriminator(nn.Module):
+    def __init__(self):
+        super().__init__()
         
+
 if __name__ == '__main__':
-    model = DensenetGenerator(inchannels = 6, 
-                 outchannels = 31, 
-                 num_init_features = 64, 
-                 block_config = (6, 12, 24, 16),
-                 bn_size = 4, 
-                 growth_rate = 32, 
-                 center_layer = 6
-                 )
+    model = SNTransformDiscriminator(34, 3)
     model = model.cuda()
     
-    input = torch.rand([16, 6, 128, 128])
+    input = torch.rand([1, 34, 128, 128])
     input = input.cuda()
     output = model(input)
     print(output.shape)

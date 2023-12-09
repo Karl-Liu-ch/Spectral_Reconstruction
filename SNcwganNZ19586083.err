@@ -1,7 +1,0 @@
-Loaded module: cuda/11.8
-Loaded module: cudnn/v8.9.1.23-prod-cuda-11.X
-/zhome/02/b/164706/miniconda3/envs/pytorch/lib/python3.11/site-packages/torchmetrics/utilities/prints.py:43: UserWarning: Metric `SpectralAngleMapper` will save all targets and predictions in the buffer. For large datasets, this may lead to a large memory footprint.
-  warnings.warn(*args, **kwargs)  # noqa: B028
-/zhome/02/b/164706/miniconda3/envs/pytorch/lib/python3.11/site-packages/torch/functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3483.)
-  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
-User defined signal 2

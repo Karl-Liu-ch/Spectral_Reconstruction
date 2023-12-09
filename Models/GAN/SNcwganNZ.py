@@ -19,6 +19,7 @@ from torch import autograd
 import functools
 from Models.GAN.networks import *
 from Models.Transformer.DTN import DTN
+
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -48,7 +49,8 @@ class SNCWGANNoNoise():
                  window_size=8, 
                  n_block=[2,2,2,2], 
                  bottleblock = 4)
-        self.D = SN_Discriminator(34)
+        # self.D = SN_Discriminator(34)
+        self.D = SNTransformDiscriminator(34, 4)
         if self.multiGPU:
             self.G = nn.DataParallel(self.G)
             self.D = nn.DataParallel(self.D)
@@ -68,7 +70,7 @@ class SNCWGANNoNoise():
         self.lossl1 = nn.L1Loss()
         self.lamda = 100
         self.lambdasam = 100
-        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGANNoNoise/'
+        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGANNoNoise_Atte/'
         if not os.path.exists(self.root):
             os.makedirs(self.root)
         self.metrics = {
