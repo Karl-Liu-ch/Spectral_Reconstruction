@@ -155,3 +155,4 @@ if __name__ == '__main__':
     f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
     f.write('\n')
     f.close()
+    

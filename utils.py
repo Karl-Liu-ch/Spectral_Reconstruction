@@ -29,7 +29,7 @@ def reconRGB(labels):
     rgbs = []
     for i in range(b):
         label = np.transpose(labels[i,:,:,:], [1,2,0])
-        rgb = projectHS(label, cube_bands, camera_filter, filterbands, clipNegative=False)
+        rgb = projectHS(label, cube_bands, camera_filter, filterbands, clipNegative=True)
         rgb = (rgb-rgb.min())/(rgb.max()-rgb.min())
         rgbs.append(np.transpose(rgb, [2,0,1]))
     rgbs = np.array(rgbs)
@@ -135,6 +135,13 @@ def SAM(preds, target):
     target_norm = target.norm(dim=1)
     sam_score = torch.clamp(dot_product / (preds_norm * target_norm), -1, 1).acos()
     return torch.mean(sam_score)
+
+def SAMHeatMap(preds, target):
+    dot_product = np.sum(preds * target, axis=2)
+    preds_norm = np.linalg.norm(preds, axis=2)
+    target_norm = np.linalg.norm(target, axis=2)
+    sam_score = np.arccos(dot_product / (preds_norm * target_norm))
+    return sam_score
 
 class Loss_SSIM(nn.Module):
     def __init__(self) -> None:
