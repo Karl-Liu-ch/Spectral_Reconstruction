@@ -18,6 +18,8 @@ from torch.autograd import Variable
 from torch import autograd
 import functools
 from Models.GAN.networks import *
+from Models.Transformer.DTN import DTN
+from Models.GAN.attention import SN_AttentionDiscirminator
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -26,7 +28,7 @@ if opt.multigpu:
 else:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+NONOISE = opt.nonoise
 # loss function
 criterion_mrae = Loss_MRAE()
 criterion_rmse = Loss_RMSE()
@@ -64,9 +66,17 @@ class D2GAN():
         super().__init__()
         self.multiGPU = multiGPU
         self.opt = opt
-        self.G = ResnetGenerator(6, 31)
+        # self.G = ResnetGenerator(6, 31)
+        self.G = DTN(in_dim=3, 
+                 out_dim=31,
+                 img_size=[128, 128], 
+                 window_size=8, 
+                 n_block=[2,2,2,2], 
+                 bottleblock = 4)
         self.D1 = SN_Discriminator(34)
         self.D2 = SN_Discriminator(34)
+        # self.D1 = SNResnetDiscriminator(34)
+        # self.D2 = SNResnetDiscriminator(34)
         if self.multiGPU:
             self.G = nn.DataParallel(self.G)
             self.D1 = nn.DataParallel(self.D1)
@@ -82,11 +92,11 @@ class D2GAN():
         self.iteration = 0
         
         self.optimG = optim.Adam(self.G.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.total_iteration, eta_min=1e-6)
+        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.end_epoch, eta_min=1e-6)
         self.optimD1 = optim.Adam(self.D1.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerD1 = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD1, self.total_iteration, eta_min=1e-6)
+        self.schedulerD1 = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD1, self.end_epoch, eta_min=1e-6)
         self.optimD2 = optim.Adam(self.D2.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerD2 = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD2, self.total_iteration, eta_min=1e-6)
+        self.schedulerD2 = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD2, self.end_epoch, eta_min=1e-6)
         self.lossl1 = nn.L1Loss()
         self.lamda = 100
         self.lambdasam = 0
@@ -94,7 +104,7 @@ class D2GAN():
         self.beta = 0.1
         self.criterion_itself = Itself_loss()
         self.criterion_log = Log_loss()
-        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/D2GAN/'
+        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/D2GANNZ/'
         if not os.path.exists(self.root):
             os.makedirs(self.root)
         self.metrics = {
@@ -117,7 +127,7 @@ class D2GAN():
     def train(self):
         self.load_dataset()
         record_mrae_loss = 1000
-        while self.iteration<self.total_iteration:
+        while self.epoch<self.end_epoch:
             self.G.train()
             self.D1.train()
             self.D2.train()
@@ -130,9 +140,12 @@ class D2GAN():
                 images = images.cuda()
                 images = Variable(images)
                 labels = Variable(labels)
-                z = torch.randn_like(images).cuda()
-                z = torch.concat([z, images], dim=1)
-                z = Variable(z)
+                if NONOISE:
+                    z = images
+                else:
+                    z = torch.randn_like(images).cuda()
+                    z = torch.concat([z, images], dim=1)
+                    z = Variable(z)
                 realAB = torch.concat([images, labels], dim=1)
                 x_fake = self.G(z)
                 fakeAB = torch.concat([images, x_fake],dim=1)
@@ -158,9 +171,7 @@ class D2GAN():
                 D2loss_fake = self.beta * self.criterion_log(D2_fake)
                 D2loss_fake.backward()
                 self.optimD1.step()
-                self.schedulerD1.step()
                 self.optimD2.step()
-                self.schedulerD2.step()
                 
                 # train G
                 self.optimG.zero_grad()
@@ -181,7 +192,6 @@ class D2GAN():
                 # train the generator
                 loss_G.backward()
                 self.optimG.step()
-                self.schedulerG.step()
                 
                 loss_mrae = criterion_mrae(x_fake, labels)
                 losses.update(loss_mrae.data)
@@ -189,6 +199,9 @@ class D2GAN():
                 if self.iteration % 20 == 0:
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
                         % (self.iteration, self.total_iteration, lrG, losses.avg))
+            self.schedulerD1.step()
+            self.schedulerD2.step()
+            self.schedulerG.step()
             # validation
             mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
             print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
@@ -215,9 +228,12 @@ class D2GAN():
         for i, (input, target) in enumerate(val_loader):
             input = input.cuda()
             target = target.cuda()
-            z = torch.randn_like(input).cuda()
-            z = torch.concat([z, input], dim=1)
-            z = Variable(z)
+            if NONOISE:
+                z = input
+            else:
+                z = torch.randn_like(input).cuda()
+                z = torch.concat([z, input], dim=1)
+                z = Variable(z)
             with torch.no_grad():
                 # compute output
                 output = self.G(z)

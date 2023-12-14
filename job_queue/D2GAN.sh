@@ -34,11 +34,10 @@ export CUDA_VISIBLE_DEVICES=0,1
 
 # Load modules
 module load cuda/11.8
-# module load cudnn/v8.8.0-prod-cuda-11.X
 cd /zhome/02/b/164706/
 source ./miniconda3/bin/activate
 conda activate pytorch
 
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u -m torch.distributed.launch --use-env Models/GAN/D2GAN.py --multigpu --loadmodel --batch_size 512
+python -u Models/GAN/D2GAN.py --batch_size 32 --nonoise

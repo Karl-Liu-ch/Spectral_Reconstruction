@@ -15,7 +15,8 @@ import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from Models.GAN.networks import *
-import functools
+from Models.Transformer.DTN import DTN
+
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -39,13 +40,22 @@ class SNCGAN():
         super().__init__()
         self.multiGPU = multiGPU
         self.opt = opt
-        self.G = ResnetGenerator(6, 31)
-        self.D = SNResnetDiscriminator(34)
+        self.G = DTN(in_dim=3, 
+                 out_dim=31,
+                 img_size=[128, 128], 
+                 window_size=8, 
+                 n_block=[2,2,2,2], 
+                 bottleblock = 4)
+        self.D = SN_Discriminator(34)
+        # self.D = SNResnetDiscriminator(34)
+        self.D2 = SNPixelDiscriminator(34)
         if self.multiGPU:
             self.G = nn.DataParallel(self.G)
             self.D = nn.DataParallel(self.D)
+            self.D2 = nn.DataParallel(self.D2)
         self.G.cuda()
         self.D.cuda()
+        self.D2.cuda()
         
         self.epoch = 0
         self.end_epoch = opt.end_epoch
@@ -54,14 +64,16 @@ class SNCGAN():
         self.iteration = 0
         
         self.optimG = optim.Adam(self.G.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.total_iteration, eta_min=1e-6)
+        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.end_epoch, eta_min=1e-6)
         self.optimD = optim.Adam(self.D.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.total_iteration, eta_min=1e-6)
+        self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.end_epoch, eta_min=1e-6)
+        self.optimD2 = optim.Adam(self.D2.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
+        self.schedulerD2 = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD2, self.end_epoch, eta_min=1e-6)
         self.lossl1 = nn.L1Loss()
         self.lamda = 100
-        self.lambdasam = 1
+        self.lambdasam = 100
         self.criterion = nn.BCEWithLogitsLoss()
-        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCGAN/'
+        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGANNoNoise_Atte/'
         if not os.path.exists(self.root):
             os.makedirs(self.root)
         self.metrics = {
@@ -81,11 +93,10 @@ class SNCGAN():
         self.test_data = TestDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
         print("Validation set samples: ", len(self.val_data))
     
-
     def train(self):
         self.load_dataset()
         record_mrae_loss = 1000
-        while self.iteration<self.total_iteration:
+        while self.epoch<self.end_epoch:
             self.G.train()
             self.D.train()
             losses = AverageMeter()
@@ -97,15 +108,19 @@ class SNCGAN():
                 images = images.cuda()
                 images = Variable(images)
                 labels = Variable(labels)
-                z = torch.randn_like(images).cuda()
-                z = torch.concat([z, images], dim=1)
-                z = Variable(z)
+                z = images
+                # z = torch.randn_like(images).cuda()
+                # z = torch.concat([z, images], dim=1)
+                # z = Variable(z)
                 realAB = torch.concat([images, labels], dim=1)
                 D_real = self.D(realAB)
+                D2_real = self.D2(realAB)
                 real_labels = torch.ones_like(D_real).cuda()
+                real_labels2 = torch.ones_like(D2_real).cuda()
                 x_fake = self.G(z)
                 fakeAB = torch.concat([images, x_fake],dim=1)
                 fake_labels = torch.zeros_like(D_real).cuda()
+                fake_labels2 = torch.zeros_like(D2_real).cuda()
                 
                 # train D
                 for p in self.D.parameters():
@@ -118,22 +133,34 @@ class SNCGAN():
                 loss_D = loss_fake + loss_real
                 loss_D.backward()
                 self.optimD.step()
-                self.schedulerD.step()
+                
+                for p in self.D2.parameters():
+                    p.requires_grad = True
+                self.D2.zero_grad()
+                loss_real2 = self.criterion(D2_real, real_labels2)
+                D2_fake = self.D2(fakeAB.detach())
+                loss_fake2 = self.criterion(D2_fake, fake_labels2)
+                loss_D2 = loss_real2 + loss_fake2
+                loss_D2.backward()
+                self.optimD2.step()
                 
                 # train G
                 self.G.zero_grad()
                 lrG = self.optimG.param_groups[0]['lr']
                 for p in self.D.parameters():
                     p.requires_grad = False
+                for p in self.D2.parameters():
+                    p.requires_grad = False
                 pred_fake = self.D(fakeAB)
+                pred_fake2 = self.D2(fakeAB)
                 loss_G = self.criterion(pred_fake, real_labels)
+                loss_G2 = self.criterion(pred_fake2, real_labels2)
                 lossl1 = self.lossl1(x_fake, labels) * self.lamda
                 losssam = SAM(x_fake, labels) * self.lambdasam
-                loss_G += lossl1 + losssam
+                loss_G += lossl1 + losssam + loss_G2
                 # train the generator
                 loss_G.backward()
                 self.optimG.step()
-                self.schedulerG.step()
                 
                 loss_mrae = criterion_mrae(x_fake, labels)
                 losses.update(loss_mrae.data)
@@ -141,6 +168,9 @@ class SNCGAN():
                 if self.iteration % 20 == 0:
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
                         % (self.iteration, self.total_iteration, lrG, losses.avg))
+            self.schedulerD.step()
+            self.schedulerD2.step()
+            self.schedulerG.step()
             # validation
             mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
             print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
@@ -170,8 +200,9 @@ class SNCGAN():
         for i, (input, target) in enumerate(val_loader):
             input = input.cuda()
             target = target.cuda()
-            z = torch.randn_like(input).cuda()
-            z = torch.concat([z, input], dim=1)
+            z = input
+            # z = torch.randn_like(input).cuda()
+            # z = torch.concat([z, input], dim=1)
             z = Variable(z)
             with torch.no_grad():
                 # compute output

@@ -16,6 +16,7 @@ from torch import autograd
 import functools
 from Models.GAN.HSCNN_Plus import HSCNN_Plus
 from Models.GAN.SpectralNormalization import *
+from Models.GAN.attention import *
 
 class UnetGenerator(nn.Module):
     def __init__(self, input_nc, output_nc, num_downs = 6, ngf=64, norm_layer=nn.BatchNorm2d, use_dropout=False, n_blocks = 0):
@@ -286,6 +287,92 @@ class ResnetGenerator(nn.Module):
         """Standard forward"""
         return self.model(input)
 
+class SN_NLayerDiscriminator(nn.Module):
+    def __init__(self, input_nc, ndf=64, n_layers=3):
+        super(SN_NLayerDiscriminator, self).__init__()
+        use_bias = True
+        kw = 4
+        padw = 1
+        sequence = [SNConv2d(input_nc, ndf, kernel_size=kw, stride=2, padding=padw), nn.LeakyReLU(0.2, True)]
+        nf_mult = 1
+        nf_mult_prev = 1
+        for n in range(1, n_layers):  # gradually increase the number of filters
+            nf_mult_prev = nf_mult
+            nf_mult = min(2 ** n, 8)
+            sequence += [
+                SNConv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=2, padding=padw, bias=use_bias),
+            ]
+
+        nf_mult_prev = nf_mult
+        nf_mult = min(2 ** n_layers, 8)
+        sequence += [
+            SNConv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=1, padding=padw, bias=use_bias),
+        ]
+
+        sequence += [SNConv2d(ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)]  # output 1 channel prediction map
+        self.model = nn.Sequential(*sequence)
+
+    def forward(self, input):
+        """Standard forward."""
+        return self.model(input)
+    
+class SNPixelDiscriminator(nn.Module):
+    """Defines a 1x1 PatchGAN discriminator (pixelGAN)"""
+
+    def __init__(self, input_nc, ndf=64, n_block = 6):
+        """Construct a 1x1 PatchGAN discriminator
+
+        Parameters:
+            input_nc (int)  -- the number of channels in input images
+            ndf (int)       -- the number of filters in the last conv layer
+            norm_layer      -- normalization layer
+        """
+        super(SNPixelDiscriminator, self).__init__()
+
+        self.net = [
+            SNConv2d(input_nc, ndf, kernel_size=1, stride=1, padding=0),
+            nn.ReLU(True),
+            SNConv2d(ndf, ndf * 2, kernel_size=1, stride=1, padding=0, bias=True)]
+        for i in range(n_block):
+            self.net += [SNResnetBlock(ndf * 2, padding_type='reflect', use_bias=True, use_dropout=False),
+            nn.ReLU(True)]
+        
+        self.net += [SNConv2d(ndf * 2, 1, kernel_size=1, stride=1, padding=0, bias=True)]
+
+        self.net = nn.Sequential(*self.net)
+
+    def forward(self, input):
+        """Standard forward."""
+        return self.net(input)
+
+# class SNResnetDiscriminator(nn.Module):
+#     def __init__(self, input_nums, n_layer=6):
+#         super().__init__()
+        
+#         model = []
+#         model += self.ResBlock(input_nums, 64, n_blocks=6)
+#         new_ch = 64
+#         for i in range(3):
+#             prev_ch = new_ch
+#             new_ch = prev_ch * 2
+#             model += self.ResBlock(prev_ch, new_ch, n_blocks=6)
+        
+#         model += [ SNConv2d(new_ch, 1, kernel_size=(4, 4), stride=(1, 1), padding=(0, 0)),
+#                         nn.AdaptiveAvgPool2d((1, 1)), 
+#                         nn.Flatten() ]
+#         self.Net = nn.Sequential(*model)
+
+#     def ResBlock(self, input_nums, output_nums, n_blocks = 1):
+#         layer = []
+#         layer.append(SNConv2d(input_nums, output_nums, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)))
+#         layer.append(nn.ReLU(True))
+#         for i in range(n_blocks):
+#             layer += [SNResnetBlock(output_nums, padding_type='reflect', use_dropout=False, use_bias=True), nn.ReLU(True)]
+#         return layer
+    
+#     def forward(self, input):
+#         output = self.Net(input)
+#         return output
 
 class ResnetBlock(nn.Module):
     """Define a Resnet block"""
@@ -345,184 +432,6 @@ class ResnetBlock(nn.Module):
         """Forward function (with skip connections)"""
         out = x + self.conv_block(x)  # add skip connections
         return out
-
-class PreNorm(nn.Module):
-    def __init__(self, dim, fn):
-        super().__init__()
-        self.fn = fn
-        self.norm = nn.LayerNorm(dim)
-
-    def forward(self, x, *args, **kwargs):
-        x = self.norm(x)
-        return self.fn(x, *args, **kwargs)
-
-
-class GELU(nn.Module):
-    def forward(self, x):
-        return F.gelu(x)
-
-def conv(in_channels, out_channels, kernel_size, bias=False, padding = 1, stride = 1):
-    return SNConv2d(
-        in_channels, out_channels, kernel_size,
-        padding=(kernel_size//2), bias=bias, stride=stride)
-
-def shift_back(inputs,step=2):          # input [bs,28,256,310]  output [bs, 28, 256, 256]
-    [bs, nC, row, col] = inputs.shape
-    down_sample = 256//row
-    step = float(step)/float(down_sample*down_sample)
-    out_col = row
-    for i in range(nC):
-        inputs[:,i,:,:out_col] = \
-            inputs[:,i,:,int(step*i):int(step*i)+out_col]
-    return inputs[:, :, :, :out_col]
-
-class MS_MSA(nn.Module):
-    def __init__(
-            self,
-            dim,
-            dim_head,
-            heads,
-    ):
-        super().__init__()
-        self.num_heads = heads
-        self.dim_head = dim_head
-        self.to_q = SNConv2d(dim, dim_head * heads, bias=False)
-        self.to_k = SNConv2d(dim, dim_head * heads, bias=False)
-        self.to_v = SNConv2d(dim, dim_head * heads, bias=False)
-        self.rescale = nn.Parameter(torch.ones(heads, 1, 1))
-        self.proj = SNConv2d(dim_head * heads, dim, bias=True)
-        self.dim = dim
-
-    def forward(self, x_in):
-        b, c, h, w = x_in.shape
-        x = x_in.clone()
-        q_inp = self.to_q(x).permute(0, 2, 3, 1).reshape(b,h*w,c)
-        k_inp = self.to_k(x).permute(0, 2, 3, 1).reshape(b,h*w,c)
-        v_inp = self.to_v(x).permute(0, 2, 3, 1).reshape(b,h*w,c)
-        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h=self.num_heads),
-                                (q_inp, k_inp, v_inp))
-        v = v
-        # q: b,heads,hw,c
-        q = q.transpose(-2, -1)
-        k = k.transpose(-2, -1)
-        v = v.transpose(-2, -1)
-        q = F.normalize(q, dim=-1, p=2)
-        k = F.normalize(k, dim=-1, p=2)
-        attn = (k @ q.transpose(-2, -1))   # A = K^T*Q
-        attn = attn * self.rescale
-        attn = attn.softmax(dim=-1)
-        x = attn @ v   # b,heads,d,hw
-        x = x.reshape(b, self.num_heads * self.dim_head, h, w)
-        out_c = self.proj(x)
-        out = out_c + x_in
-
-        return out
-
-class FeedForward(nn.Module):
-    def __init__(self, dim, mult=4):
-        super().__init__()
-        self.net = nn.Sequential(
-            SNConv2d(dim, dim * mult, 1, 1, bias=False),
-            GELU(),
-            SNConv2d(dim * mult, dim * mult, 3, 1, 1, bias=False, groups=dim * mult),
-            GELU(),
-            SNConv2d(dim * mult, dim, 1, 1, bias=False),
-        )
-
-    def forward(self, x):
-        """
-        x: [b,h,w,c]
-        return out: [b,h,w,c]
-        """
-        out = self.net(x)
-        return out
-
-class SN_MSAB(nn.Module):
-    def __init__(
-            self,
-            dim,
-            dim_head,
-            heads,
-            num_blocks,
-    ):
-        super().__init__()
-        self.blocks = nn.ModuleList([])
-        for _ in range(num_blocks):
-            self.blocks.append(nn.ModuleList([
-                MS_MSA(dim=dim, dim_head=dim_head, heads=heads),
-                FeedForward(dim=dim)
-            ]))
-
-    def forward(self, x):
-        """
-        x: [b,c,h,w]
-        return out: [b,c,h,w]
-        """
-        # x = x.permute(0, 2, 3, 1)
-        for (attn, ff) in self.blocks:
-            x = attn(x) + x
-            x = ff(x) + x
-        # out = x.permute(0, 3, 1, 2)
-        return x
-
-class SN_NLayerDiscriminator(nn.Module):
-    def __init__(self, input_nc, ndf=64, n_layers=3):
-        super(SN_NLayerDiscriminator, self).__init__()
-        use_bias = True
-        kw = 4
-        padw = 1
-        sequence = [SNConv2d(input_nc, ndf, kernel_size=kw, stride=2, padding=padw), nn.LeakyReLU(0.2, True)]
-        nf_mult = 1
-        nf_mult_prev = 1
-        for n in range(1, n_layers):  # gradually increase the number of filters
-            nf_mult_prev = nf_mult
-            nf_mult = min(2 ** n, 8)
-            sequence += [
-                SNConv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=2, padding=padw, bias=use_bias),
-            ]
-
-        nf_mult_prev = nf_mult
-        nf_mult = min(2 ** n_layers, 8)
-        sequence += [
-            SNConv2d(ndf * nf_mult_prev, ndf * nf_mult, kernel_size=kw, stride=1, padding=padw, bias=use_bias),
-        ]
-
-        sequence += [SNConv2d(ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)]  # output 1 channel prediction map
-        self.model = nn.Sequential(*sequence)
-
-    def forward(self, input):
-        """Standard forward."""
-        return self.model(input)
-    
-class SNPixelDiscriminator(nn.Module):
-    """Defines a 1x1 PatchGAN discriminator (pixelGAN)"""
-
-    def __init__(self, input_nc, ndf=64, n_block = 6):
-        """Construct a 1x1 PatchGAN discriminator
-
-        Parameters:
-            input_nc (int)  -- the number of channels in input images
-            ndf (int)       -- the number of filters in the last conv layer
-            norm_layer      -- normalization layer
-        """
-        super(SNPixelDiscriminator, self).__init__()
-
-        self.net = [
-            SNConv2d(input_nc, ndf, kernel_size=1, stride=1, padding=0),
-            nn.ReLU(True),
-            SNConv2d(ndf, ndf * 2, kernel_size=1, stride=1, padding=0, bias=True)]
-        for i in range(n_block):
-            self.net += [SNResnetBlock(ndf * 2, padding_type='reflect', use_bias=True, use_dropout=False),
-            nn.ReLU(True)]
-        
-        self.net += [SNConv2d(ndf * 2, 1, kernel_size=1, stride=1, padding=0, bias=True)]
-
-        self.net = nn.Sequential(*self.net)
-
-    def forward(self, input):
-        """Standard forward."""
-        return self.net(input)
-
 class SNResnetDiscriminator(nn.Module):
     def __init__(self, input_nums, n_layer=6):
         super().__init__()

@@ -19,6 +19,7 @@ from torch import autograd
 import functools
 from Models.GAN.networks import *
 from Models.Transformer.DTN import DTN
+from Models.GAN.attention import SN_AttentionDiscirminator
 
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
@@ -49,8 +50,8 @@ class SNCWGANNoNoise():
                  window_size=8, 
                  n_block=[2,2,2,2], 
                  bottleblock = 4)
-        # self.D = SN_Discriminator(34)
-        self.D = SNTransformDiscriminator(34, 4)
+        self.D = SN_Discriminator(34)
+        # self.D = SNResnetDiscriminator(34)
         if self.multiGPU:
             self.G = nn.DataParallel(self.G)
             self.D = nn.DataParallel(self.D)
@@ -64,13 +65,13 @@ class SNCWGANNoNoise():
         self.iteration = 0
         
         self.optimG = optim.Adam(self.G.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.total_iteration, eta_min=1e-6)
+        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.epoch, eta_min=1e-6)
         self.optimD = optim.Adam(self.D.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.total_iteration, eta_min=1e-6)
+        self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.epoch, eta_min=1e-6)
         self.lossl1 = nn.L1Loss()
         self.lamda = 100
         self.lambdasam = 100
-        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGANNoNoise_Atte/'
+        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGANNoNoise/'
         if not os.path.exists(self.root):
             os.makedirs(self.root)
         self.metrics = {
@@ -115,7 +116,7 @@ class SNCWGANNoNoise():
     def train(self):
         self.load_dataset()
         record_mrae_loss = 1000
-        while self.iteration<self.total_iteration:
+        while self.epoch<self.end_epoch:
             self.G.train()
             self.D.train()
             losses = AverageMeter()
@@ -147,7 +148,6 @@ class SNCWGANNoNoise():
                 # gp = self.calculate_gradient_penalty(labels.data, x_fake.data, images.data)
                 # gp.backward()
                 self.optimD.step()
-                self.schedulerD.step()
                 
                 # train G
                 self.optimG.zero_grad()
@@ -162,7 +162,6 @@ class SNCWGANNoNoise():
                 # train the generator
                 loss_G.backward()
                 self.optimG.step()
-                self.schedulerG.step()
                 
                 loss_mrae = criterion_mrae(x_fake, labels)
                 losses.update(loss_mrae.data)
@@ -170,6 +169,8 @@ class SNCWGANNoNoise():
                 if self.iteration % 20 == 0:
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
                         % (self.iteration, self.total_iteration, lrG, losses.avg))
+            self.schedulerD.step()
+            self.schedulerG.step()
             # validation
             mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
             print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
