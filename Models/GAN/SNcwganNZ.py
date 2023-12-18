@@ -65,9 +65,9 @@ class SNCWGANNoNoise():
         self.iteration = 0
         
         self.optimG = optim.Adam(self.G.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.epoch, eta_min=1e-6)
+        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.end_epoch, eta_min=1e-6)
         self.optimD = optim.Adam(self.D.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.epoch, eta_min=1e-6)
+        self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.end_epoch, eta_min=1e-6)
         self.lossl1 = nn.L1Loss()
         self.lamda = 100
         self.lambdasam = 100
@@ -169,8 +169,6 @@ class SNCWGANNoNoise():
                 if self.iteration % 20 == 0:
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
                         % (self.iteration, self.total_iteration, lrG, losses.avg))
-            self.schedulerD.step()
-            self.schedulerG.step()
             # validation
             mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
             print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
@@ -187,6 +185,8 @@ class SNCWGANNoNoise():
                                                                 self.epoch, lrG, 
                                                                 losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss))
             self.epoch += 1
+            self.schedulerD.step()
+            self.schedulerG.step()
                 
     def validate(self, val_loader):
         self.G.eval()

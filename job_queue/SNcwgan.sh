@@ -2,7 +2,7 @@
 ### General options
 ### –- specify queue --
 #BSUB -q gpua100
-#BSUB -R "select[gpu80gb]"
+#BSUB -R "select[gpu40gb]"
 ### -- set the job Name --
 #BSUB -J SNcwgan
 ### -- ask for number of cores (default: 1) --
@@ -42,4 +42,4 @@ conda activate pytorch
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
 # python -u -m torch.distributed.launch --use-env Models/GAN/SNcwgan.py --multigpu --loadmodel --batch_size 128 --gpu_id 0,1
-python -u Models/GAN/SNcwgan.py --loadmodel --batch_size 256 --gpu_id 0
+python -u Models/GAN/SNcwgan.py --batch_size 256 --gpu_id 0

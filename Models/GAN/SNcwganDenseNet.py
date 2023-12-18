@@ -170,8 +170,6 @@ class SNCWGANDenseNet():
                 if self.iteration % 20 == 0:
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
                         % (self.iteration, self.total_iteration, lrG, losses.avg))
-            self.schedulerD.step()
-            self.schedulerG.step()
             # validation
             mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
             print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
@@ -188,6 +186,8 @@ class SNCWGANDenseNet():
                                                                 self.epoch, lrG, 
                                                                 losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss))
             self.epoch += 1
+            self.schedulerD.step()
+            self.schedulerG.step()
                 
     def validate(self, val_loader):
         self.G.eval()

@@ -31,7 +31,8 @@ def reconRGB(labels):
         label = np.transpose(labels[i,:,:,:], [1,2,0])
         rgb = projectHS(label, cube_bands, camera_filter, filterbands, clipNegative=True)
         rgb = (rgb-rgb.min())/(rgb.max()-rgb.min())
-        rgbs.append(np.transpose(rgb, [2,0,1]))
+        rgb = np.transpose(rgb, [2,0,1])
+        rgbs.append(rgb)
     rgbs = np.array(rgbs)
     rgbs = torch.from_numpy(rgbs).cuda()
     return rgbs
@@ -50,6 +51,7 @@ def SaveSpectral(spectensor, i, root = '/work3/s212645/Spectral_Reconstruction/F
     rgb = reconRGBfromNumpy(specnp)
     mat['rgb'] = rgb
     scipy.io.savemat(root + name, mat)
+    return rgb
 
 class AverageMeter(object):
     def __init__(self):
@@ -95,8 +97,12 @@ class Loss_Fid(nn.Module):
     def forward(self, outputs, label):
         outputs = outputs * 255
         label = label * 255
-        outputs = outputs.type(torch.cuda.ByteTensor)
-        label = label.type(torch.cuda.ByteTensor)
+        if torch.cuda.is_available():
+            outputs = outputs.type(torch.cuda.ByteTensor)
+            label = label.type(torch.cuda.ByteTensor)
+        else:
+            outputs = outputs.type(torch.ByteTensor)
+            label = label.type(torch.ByteTensor)
         self.fid.update(label, real=True)
         self.fid.update(outputs, real=False)
         return self.fid.compute()

@@ -81,6 +81,7 @@ def test(Model, modelname, noise = False):
         with torch.no_grad():
             # compute output
             output = Model.G(z)
+            rgbs = []
             for j in range(output.shape[0]):
                 mat = {}
                 mat['cube'] = np.transpose(target[j,:,:,:].cpu().numpy(), [1,2,0])
@@ -89,19 +90,23 @@ def test(Model, modelname, noise = False):
                 real = (real - real.min()) / (real.max()-real.min())
                 mat['rgb'] = real
                 scipy.io.savemat(root + str(i * output.shape[0] + j).zfill(3) + '.mat', mat)
-                SaveSpectral(output[j,:,:,:], i * output.shape[0] + j, root='/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/')
+                rgb = SaveSpectral(output[j,:,:,:], i * output.shape[0] + j, root='/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/')
+                rgbs.append(rgb)
                 print(i * output.shape[0] + j, 'saved')
             loss_mrae = criterion_mrae(output, target)
             loss_rmse = criterion_rmse(output, target)
             loss_psnr = criterion_psnr(output, target)
             loss_sam = criterion_sam(output, target)
             loss_sid = criterion_sid(output, target)
-            rgb = reconRGB(output)
+            # rgb = reconRGB(output)
             input = normalize(input)
-            rgb = normalize(rgb)
-            loss_fid = criterion_fid(rgb, input)
-            loss_ssim = criterion_ssim(rgb, input)
-            loss_psrnrgb = criterion_psnrrgb(rgb, input)
+            # rgb = normalize(rgb)
+            rgbs = np.array(rgbs)
+            rgbs = torch.from_numpy(rgbs).cuda()
+            rgbs = rgbs.transpose(0, 3, 1, 2)
+            loss_fid = criterion_fid(rgbs, input)
+            loss_ssim = criterion_ssim(rgbs, input)
+            loss_psrnrgb = criterion_psnrrgb(rgbs, input)
         # record loss
         losses_mrae.update(loss_mrae.data)
         losses_rmse.update(loss_rmse.data)
