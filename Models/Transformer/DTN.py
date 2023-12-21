@@ -50,6 +50,44 @@ class SWTB(nn.Module):
         x = rearrange(x, 'b (h w) c -> b c h w', h=H, w=W)
         return x
 
+class ChannelAtten(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.channel_interaction = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(dim, dim // 8, kernel_size=1),
+            nn.GELU(),
+            nn.Conv2d(dim // 8, dim, kernel_size=1),
+        )
+    
+    def forward(self, x):
+        return self.channel_interaction(x)
+
+class SpatialAtten(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.spatial_interaction = nn.Sequential(
+            nn.Conv2d(dim, dim // 16, kernel_size=1),
+            nn.BatchNorm2d(dim // 16),
+            nn.GELU(),
+            nn.Conv2d(dim // 16, 1, kernel_size=1)
+        )
+    
+    def forward(self, x):
+        return self.spatial_interaction(x)
+
+class DWCONV(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.dwconv = nn.Sequential(
+            nn.Conv2d(dim, dim, kernel_size=3, stride=1, padding=1,groups=dim),
+            nn.BatchNorm2d(dim),
+            nn.GELU()
+        )
+    
+    def forward(self, x):
+        return self.dwconv(x)
+
 class Adaptive_SWTB(nn.Module):
     def __init__(self, dim=31, 
                  input_resolution=(128,128), 
@@ -60,23 +98,26 @@ class Adaptive_SWTB(nn.Module):
                           input_resolution=input_resolution, 
                           num_heads=num_heads, 
                           window_size=window_size)
-        self.dwconv = nn.Sequential(
-            nn.Conv2d(dim, dim, kernel_size=3, stride=1, padding=1,groups=dim),
-            nn.BatchNorm2d(dim),
-            nn.GELU()
-        )
-        self.channel_interaction = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(dim, dim // 8, kernel_size=1),
-            nn.GELU(),
-            nn.Conv2d(dim // 8, dim, kernel_size=1),
-        )
-        self.spatial_interaction = nn.Sequential(
-            nn.Conv2d(dim, dim // 16, kernel_size=1),
-            nn.BatchNorm2d(dim // 16),
-            nn.GELU(),
-            nn.Conv2d(dim // 16, 1, kernel_size=1)
-        )
+        # self.dwconv = nn.Sequential(
+        #     nn.Conv2d(dim, dim, kernel_size=3, stride=1, padding=1,groups=dim),
+        #     nn.BatchNorm2d(dim),
+        #     nn.GELU()
+        # )
+        # self.channel_interaction = nn.Sequential(
+        #     nn.AdaptiveAvgPool2d(1),
+        #     nn.Conv2d(dim, dim // 8, kernel_size=1),
+        #     nn.GELU(),
+        #     nn.Conv2d(dim // 8, dim, kernel_size=1),
+        # )
+        # self.spatial_interaction = nn.Sequential(
+        #     nn.Conv2d(dim, dim // 16, kernel_size=1),
+        #     nn.BatchNorm2d(dim // 16),
+        #     nn.GELU(),
+        #     nn.Conv2d(dim // 16, 1, kernel_size=1)
+        # )
+        self.dwconv = DWCONV(dim)
+        self.channel_interaction = ChannelAtten(dim)
+        self.spatial_interaction = SpatialAtten(dim)
     
     def forward(self, x):
         B, C, H, W = x.shape
@@ -96,23 +137,26 @@ class Adaptive_MSAB(nn.Module):
         super().__init__()
         self.model = MSAB(dim=dim, num_blocks=num_blocks, dim_head=dim_head, heads=heads)
         
-        self.dwconv = nn.Sequential(
-            nn.Conv2d(dim, dim, kernel_size=3, stride=1, padding=1,groups=dim),
-            nn.BatchNorm2d(dim),
-            nn.GELU()
-        )
-        self.channel_interaction = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(dim, dim // 8, kernel_size=1),
-            nn.GELU(),
-            nn.Conv2d(dim // 8, dim, kernel_size=1),
-        )
-        self.spatial_interaction = nn.Sequential(
-            nn.Conv2d(dim, dim // 16, kernel_size=1),
-            nn.BatchNorm2d(dim // 16),
-            nn.GELU(),
-            nn.Conv2d(dim // 16, 1, kernel_size=1)
-        )
+        # self.dwconv = nn.Sequential(
+        #     nn.Conv2d(dim, dim, kernel_size=3, stride=1, padding=1,groups=dim),
+        #     nn.BatchNorm2d(dim),
+        #     nn.GELU()
+        # )
+        # self.channel_interaction = nn.Sequential(
+        #     nn.AdaptiveAvgPool2d(1),
+        #     nn.Conv2d(dim, dim // 8, kernel_size=1),
+        #     nn.GELU(),
+        #     nn.Conv2d(dim // 8, dim, kernel_size=1),
+        # )
+        # self.spatial_interaction = nn.Sequential(
+        #     nn.Conv2d(dim, dim // 16, kernel_size=1),
+        #     nn.BatchNorm2d(dim // 16),
+        #     nn.GELU(),
+        #     nn.Conv2d(dim // 16, 1, kernel_size=1)
+        # )
+        self.dwconv = DWCONV(dim)
+        self.channel_interaction = ChannelAtten(dim)
+        self.spatial_interaction = SpatialAtten(dim)
         
     def forward(self, x):
         B, C, H, W = x.shape

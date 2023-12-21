@@ -77,11 +77,12 @@ def test(Model, modelname, noise = False):
             z = torch.concat([z, input], dim=1)
             z = Variable(z)
         else:
-            z = input
+            z = Variable(input)
         with torch.no_grad():
             # compute output
             output = Model.G(z)
             rgbs = []
+            reals = []
             for j in range(output.shape[0]):
                 mat = {}
                 mat['cube'] = np.transpose(target[j,:,:,:].cpu().numpy(), [1,2,0])
@@ -92,21 +93,20 @@ def test(Model, modelname, noise = False):
                 scipy.io.savemat(root + str(i * output.shape[0] + j).zfill(3) + '.mat', mat)
                 rgb = SaveSpectral(output[j,:,:,:], i * output.shape[0] + j, root='/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/')
                 rgbs.append(rgb)
+                reals.append(real)
                 print(i * output.shape[0] + j, 'saved')
             loss_mrae = criterion_mrae(output, target)
             loss_rmse = criterion_rmse(output, target)
             loss_psnr = criterion_psnr(output, target)
             loss_sam = criterion_sam(output, target)
             loss_sid = criterion_sid(output, target)
-            # rgb = reconRGB(output)
-            input = normalize(input)
-            # rgb = normalize(rgb)
-            rgbs = np.array(rgbs)
+            rgbs = np.array(rgbs).transpose(0, 3, 1, 2)
             rgbs = torch.from_numpy(rgbs).cuda()
-            rgbs = rgbs.transpose(0, 3, 1, 2)
-            loss_fid = criterion_fid(rgbs, input)
-            loss_ssim = criterion_ssim(rgbs, input)
-            loss_psrnrgb = criterion_psnrrgb(rgbs, input)
+            reals = np.array(reals).transpose(0, 3, 1, 2)
+            reals = torch.from_numpy(reals).cuda()
+            loss_fid = criterion_fid(rgbs, reals)
+            loss_ssim = criterion_ssim(rgbs, reals)
+            loss_psrnrgb = criterion_psnrrgb(rgbs, reals)
         # record loss
         losses_mrae.update(loss_mrae.data)
         losses_rmse.update(loss_rmse.data)
@@ -133,10 +133,10 @@ if __name__ == '__main__':
     f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
     f.write('\n')
     
-    modelname = 'D2GAN'
+    modelname = 'D2GANNZ'
     model = D2GAN(opt)
     model.load_checkpoint()
-    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
+    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=False)
     print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
     f.write(modelname+':\n')
     f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')

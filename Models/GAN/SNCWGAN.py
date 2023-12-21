@@ -28,22 +28,42 @@ else:
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 NONOISE = opt.nonoise
 
-class SNCWGANDTN(BaseModel):
+class SNCWGAN(BaseModel):
     def __init__(self, opt, multiGPU=False):
         super().__init__(opt, multiGPU)
         self.lamda = 100
         self.lambdasam = 100
-        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGANDTN/'
+        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGAN/' + self.opt.G + '/'
+        self.nonoise = False
         self.init_Net()
         self.init_metrics()
     
     def init_Net(self):
-        self.G = DTN(in_dim=3, 
-                 out_dim=31,
-                 img_size=[128, 128], 
-                 window_size=8, 
-                 n_block=[2,2,2,2], 
-                 bottleblock = 4)
+        if self.opt.G == 'DTN':
+            self.G = DTN(in_dim=3, 
+                    out_dim=31,
+                    img_size=[128, 128], 
+                    window_size=8, 
+                    n_block=[2,2,2,2], 
+                    bottleblock = 4)
+            self.nonoise = True
+            print('DTN, No noise')
+        elif self.opt.G == 'res':
+            self.G = ResnetGenerator(6, 31)
+            self.nonoise = False
+            print('ResnetGenerator, with noise')
+        elif self.opt.G == 'dense':
+            self.G = DensenetGenerator(inchannels = 6, 
+                 outchannels = 31, 
+                 num_init_features = 64, 
+                 block_config = (6, 12, 24, 16),
+                 bn_size = 4, 
+                 growth_rate = 32, 
+                 center_layer = 6
+                 )
+            self.nonoise = False
+            self.lambdasam = 0
+            print('DensenetGenerator, with noise')
         self.D = SN_Discriminator(34)
         super().init_Net()
         
@@ -62,9 +82,15 @@ class SNCWGANDTN(BaseModel):
                 images = images.cuda()
                 images = Variable(images)
                 labels = Variable(labels)
+                if self.nonoise:
+                    z = images
+                else:
+                    z = torch.randn_like(images).cuda()
+                    z = torch.concat([z, images], dim=1)
+                    z = Variable(z)
                 realAB = torch.concat([images, labels], dim=1)
                 D_real = self.D(realAB)
-                x_fake = self.G(images)
+                x_fake = self.G(z)
                 fakeAB = torch.concat([images, x_fake],dim=1)
                 
                 # train D
@@ -119,7 +145,7 @@ class SNCWGANDTN(BaseModel):
             self.schedulerG.step()
             
 if __name__ == '__main__':
-    spec = SNCWGANDTN(opt, multiGPU=opt.multigpu)
+    spec = SNCWGAN(opt, multiGPU=opt.multigpu)
     if opt.loadmodel:
         try:
             spec.load_checkpoint()

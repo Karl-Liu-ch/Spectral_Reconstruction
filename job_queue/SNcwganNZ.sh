@@ -42,4 +42,4 @@ conda activate pytorch
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
 # python -u -m torch.distributed.launch --use-env Models/GAN/SNcwganNZ.py --multigpu --loadmodel --batch_size 128 --gpu_id 0,1
-python -u Models/GAN/SNcwganNZ.py --batch_size 32 --gpu_id 0
+python -u Models/GAN/SNcwganNZ.py --batch_size 32 --gpu_id 0 --loadmodel

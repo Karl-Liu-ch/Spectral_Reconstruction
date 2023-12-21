@@ -4,7 +4,7 @@
 #BSUB -q gpua100
 #BSUB -R "select[gpu80gb]"
 ### -- set the job Name --
-#BSUB -J D2GAN
+#BSUB -J SNCWGANDENSENET
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 8
 ### -- specify that the cores must be on the same host --
@@ -13,8 +13,8 @@
 #BSUB -gpu "num=1:mode=exclusive_process"
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
 #BSUB -W 24:00
-# request 100GB of system-memory
-#BSUB -R "rusage[mem=20GB]"
+# request 40GB of system-memory
+#BSUB -R "rusage[mem=40GB]"
 ### -- set the email address --
 # please uncomment the following line and put in your e-mail address,
 # if you want to receive e-mail notifications on a non-default address
@@ -25,19 +25,15 @@
 #BSUB -B
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o D2GAN%J.out
-#BSUB -e D2GAN%J.err
+#BSUB -o SNCWGANDENSENET%J.out
+#BSUB -e SNCWGANDENSENET%J.err
 # -- end of LSF options --
-
 nvidia-smi
-export CUDA_VISIBLE_DEVICES=0,1
-
-# Load modules
 module load cuda/11.8
+module load cudnn/v8.9.1.23-prod-cuda-11.X 
 cd /zhome/02/b/164706/
 source ./miniconda3/bin/activate
 conda activate pytorch
-
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u Models/GAN/D2GAN.py --batch_size 32 --nonoise --loadmodel
+python -u Models/GAN/SNCWGAN.py --gpu_id 0 --batch_size 32 --G dense

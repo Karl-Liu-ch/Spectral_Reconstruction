@@ -109,10 +109,10 @@ class D2GAN():
         if not os.path.exists(self.root):
             os.makedirs(self.root)
         self.metrics = {
-            'MRAE':np.zeros(shape=[1,self.end_epoch-1]),
-            'RMSE':np.zeros(shape=[1,self.end_epoch-1]),
-            'PSNR':np.zeros(shape=[1,self.end_epoch-1]),
-            'SAM':np.zeros(shape=[1,self.end_epoch-1])
+            'MRAE':np.zeros(shape=[self.end_epoch-1]),
+            'RMSE':np.zeros(shape=[self.end_epoch-1]),
+            'PSNR':np.zeros(shape=[self.end_epoch-1]),
+            'SAM':np.zeros(shape=[self.end_epoch-1])
         }
     
     def load_dataset(self):
