@@ -16,7 +16,7 @@ import functools
 from Models.GAN.networks import *
 from Models.Transformer.DTN import DTN
 import numpy as np
-from Models.GAN.Basemodel import BaseModel, criterion_mrae, AverageMeter, SAM
+from Models.GAN.Basemodel import BaseModel, criterion_mrae, AverageMeter, SAM, Loss_SAM, Loss_SID, Loss_Fid, Loss_SSIM
 from Models.GAN.Utils import Log_loss, Itself_loss
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
@@ -28,11 +28,20 @@ else:
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 NONOISE = opt.nonoise
 
+criterion_mrae = Loss_MRAE()
+criterion_rmse = Loss_RMSE()
+criterion_psnr = Loss_PSNR()
+criterion_psnrrgb = Loss_PSNR()
+criterion_sam = Loss_SAM()
+criterion_sid = Loss_SID()
+criterion_fid = Loss_Fid().cuda()
+criterion_ssim = Loss_SSIM().cuda()
+
 class DualDGAN(BaseModel):
     def __init__(self, opt, multiGPU=False):
         super().__init__(opt, multiGPU)
         self.lamda = 100
-        self.lambdasam = 0
+        self.lambdasam = 100
         self.alpha = 0.2
         self.beta = 0.1
         self.criterion_itself = Itself_loss()
@@ -81,12 +90,7 @@ class DualDGAN(BaseModel):
                 images = images.cuda()
                 images = Variable(images)
                 labels = Variable(labels)
-                if NONOISE:
-                    z = images
-                else:
-                    z = torch.randn_like(images).cuda()
-                    z = torch.concat([z, images], dim=1)
-                    z = Variable(z)
+                z = images
                 realAB = torch.concat([images, labels], dim=1)
                 x_fake = self.G(z)
                 fakeAB = torch.concat([images, x_fake],dim=1)
@@ -158,6 +162,40 @@ class DualDGAN(BaseModel):
             self.schedulerD1.step()
             self.schedulerD2.step()
             self.schedulerG.step()
+    
+    def validate(self, val_loader):
+        self.G.eval()
+        losses_mrae = AverageMeter()
+        losses_rmse = AverageMeter()
+        losses_psnr = AverageMeter()
+        losses_sam = AverageMeter()
+        losses_sid = AverageMeter()
+        for i, (input, target) in enumerate(val_loader):
+            input = input.cuda()
+            target = target.cuda()
+            z = input
+            with torch.no_grad():
+                # compute output
+                output = self.G(z)
+                loss_mrae = criterion_mrae(output, target)
+                loss_rmse = criterion_rmse(output, target)
+                loss_psnr = criterion_psnr(output, target)
+                loss_sam = criterion_sam(output, target)
+                loss_sid = criterion_sid(output, target)
+            # record loss
+            losses_mrae.update(loss_mrae.data)
+            losses_rmse.update(loss_rmse.data)
+            losses_psnr.update(loss_psnr.data)
+            losses_sam.update(loss_sam.data)
+            losses_sid.update(loss_sid.data)
+        criterion_sam.reset()
+        criterion_psnr.reset()
+        self.metrics['MRAE'][self.epoch]=losses_mrae.avg.cpu().detach().numpy()
+        self.metrics['RMSE'][self.epoch]=losses_rmse.avg.cpu().detach().numpy()
+        self.metrics['PSNR'][self.epoch]=losses_psnr.avg.cpu().detach().numpy()
+        self.metrics['SAM'][self.epoch]=losses_sam.avg.cpu().detach().numpy()
+        self.save_metrics()
+        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg
     
     def save_checkpoint(self, best = False):
         if self.multiGPU:

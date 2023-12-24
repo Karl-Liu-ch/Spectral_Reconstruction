@@ -100,7 +100,7 @@ class D2GAN():
         self.schedulerD2 = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD2, self.end_epoch, eta_min=1e-6)
         self.lossl1 = nn.L1Loss()
         self.lamda = 100
-        self.lambdasam = 0
+        self.lambdasam = 100
         self.alpha = 0.2
         self.beta = 0.1
         self.criterion_itself = Itself_loss()
@@ -109,10 +109,10 @@ class D2GAN():
         if not os.path.exists(self.root):
             os.makedirs(self.root)
         self.metrics = {
-            'MRAE':np.zeros(shape=[self.end_epoch-1]),
-            'RMSE':np.zeros(shape=[self.end_epoch-1]),
-            'PSNR':np.zeros(shape=[self.end_epoch-1]),
-            'SAM':np.zeros(shape=[self.end_epoch-1])
+            'MRAE':np.zeros(shape=[self.end_epoch]),
+            'RMSE':np.zeros(shape=[self.end_epoch]),
+            'PSNR':np.zeros(shape=[self.end_epoch]),
+            'SAM':np.zeros(shape=[self.end_epoch])
         }
     
     def load_dataset(self):
@@ -126,6 +126,7 @@ class D2GAN():
         print("Validation set samples: ", len(self.val_data))
         
     def train(self):
+        print(NONOISE)
         self.load_dataset()
         record_mrae_loss = 1000
         while self.epoch<self.end_epoch:

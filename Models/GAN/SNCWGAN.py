@@ -112,8 +112,10 @@ class SNCWGAN(BaseModel):
                     p.requires_grad = False
                 pred_fake = self.D(fakeAB)
                 loss_G = -pred_fake.mean(0).view(1)
-                lossl1 = self.lossl1(x_fake, labels) * self.lamda
-                losssam = SAM(x_fake, labels) * self.lambdasam
+                # lossl1 = self.lossl1(x_fake, labels) * self.lamda
+                # losssam = SAM(x_fake, labels) * self.lambdasam
+                lossl1 = self.lossl1(x_fake, labels) * torch.abs(loss_G.detach() / self.lossl1(x_fake, labels).detach()).detach()
+                losssam = SAM(x_fake, labels) * torch.abs(loss_G.detach() / SAM(x_fake, labels).detach()).detach()
                 loss_G += lossl1 + losssam
                 # train the generator
                 loss_G.backward()

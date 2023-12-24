@@ -73,10 +73,10 @@ class BaseModel():
         if not os.path.exists(self.root):
             os.makedirs(self.root)
         self.metrics = {
-            'MRAE':np.zeros(shape=[self.end_epoch-1]),
-            'RMSE':np.zeros(shape=[self.end_epoch-1]),
-            'PSNR':np.zeros(shape=[self.end_epoch-1]),
-            'SAM':np.zeros(shape=[self.end_epoch-1])
+            'MRAE':np.zeros(shape=[self.end_epoch]),
+            'RMSE':np.zeros(shape=[self.end_epoch]),
+            'PSNR':np.zeros(shape=[self.end_epoch]),
+            'SAM':np.zeros(shape=[self.end_epoch])
         }
     
     def load_dataset(self):
@@ -86,8 +86,8 @@ class BaseModel():
         print(f"Iteration per epoch: {len(self.train_data)}")
         self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
         print("Validation set samples: ", len(self.val_data))
-        self.test_data = TestDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
-        print("Validation set samples: ", len(self.val_data))
+        # self.test_data = TestDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
+        # print("Validation set samples: ", len(self.val_data))
         
     def train(self):
         self.load_dataset()
@@ -102,7 +102,7 @@ class BaseModel():
         for i, (input, target) in enumerate(val_loader):
             input = input.cuda()
             target = target.cuda()
-            if NONOISE:
+            if self.nonoise:
                 z = input
             else:
                 z = torch.randn_like(input).cuda()
@@ -131,7 +131,7 @@ class BaseModel():
         self.save_metrics()
         return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg
     
-    def test(self, test_loader, modelname):
+    def test(self, modelname):
         try: 
             os.mkdir('/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/')
             os.mkdir('/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/')

@@ -17,6 +17,10 @@ parser.add_argument("--loadmodel", action='store_true')
 opt = parser.parse_args()
 
 file = 'job_queue/' + opt.model+'.sh'
+if opt.multigpu:
+    numgpu = 2
+else:
+    numgpu = 1
 
 scripts = ['#!/bin/sh',
             '### General options',
@@ -29,8 +33,8 @@ scripts = ['#!/bin/sh',
             '#BSUB -n 8',
             '### -- specify that the cores must be on the same host --',
             '#BSUB -R "span[hosts=1]"',
-            '### -- Select the resources: '+str(opt.numgpu)+' gpu in exclusive process mode --',
-            '#BSUB -gpu "num='+str(opt.numgpu)+':mode=exclusive_process"',
+            '### -- Select the resources: '+str(numgpu)+' gpu in exclusive process mode --',
+            '#BSUB -gpu "num='+str(numgpu)+':mode=exclusive_process"',
             '### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now',
             '#BSUB -W 24:00',
             '# request '+str(opt.sysmem)+'GB of system-memory',

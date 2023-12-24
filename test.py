@@ -94,7 +94,7 @@ def test(Model, modelname, noise = False):
                 rgb = SaveSpectral(output[j,:,:,:], i * output.shape[0] + j, root='/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/')
                 rgbs.append(rgb)
                 reals.append(real)
-                print(i * output.shape[0] + j, 'saved')
+                # print(i * output.shape[0] + j, 'saved')
             loss_mrae = criterion_mrae(output, target)
             loss_rmse = criterion_rmse(output, target)
             loss_psnr = criterion_psnr(output, target)
@@ -124,14 +124,14 @@ def test(Model, modelname, noise = False):
 if __name__ == '__main__':
     file = 'result.txt'
     f = open(file, 'a')
-    modelname = 'SNCWGANNoNoise'
-    model = SNCWGANNoNoise(opt)
-    model.load_checkpoint()
-    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=False)
-    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write(modelname+':\n')
-    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write('\n')
+    # modelname = 'SNCWGANNoNoise'
+    # model = SNCWGANNoNoise(opt)
+    # model.load_checkpoint()
+    # mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=False)
+    # print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    # f.write(modelname+':\n')
+    # f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    # f.write('\n')
     
     modelname = 'D2GANNZ'
     model = D2GAN(opt)
@@ -142,22 +142,22 @@ if __name__ == '__main__':
     f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
     f.write('\n')
     
-    modelname = 'SNCWGANDenseNet'
-    model = SNCWGANDenseNet(opt)
-    model.load_checkpoint()
-    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
-    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write(modelname+':\n')
-    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write('\n')
+    # modelname = 'SNCWGANDenseNet'
+    # model = SNCWGANDenseNet(opt)
+    # model.load_checkpoint()
+    # mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
+    # print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    # f.write(modelname+':\n')
+    # f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    # f.write('\n')
     
-    modelname = 'SNCWGAN'
-    model = SNCWGAN(opt)
-    model.load_checkpoint()
-    mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
-    print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write(modelname+':\n')
-    f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
-    f.write('\n')
+    # modelname = 'SNCWGAN'
+    # model = SNCWGAN(opt)
+    # model.load_checkpoint()
+    # mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, noise=True)
+    # print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    # f.write(modelname+':\n')
+    # f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
+    # f.write('\n')
     f.close()
     

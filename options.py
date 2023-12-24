@@ -17,7 +17,8 @@ parser.add_argument("--local-rank", type=int)
 parser.add_argument("--multigpu", action='store_true')
 parser.add_argument("--loadmodel", action='store_true')
 parser.add_argument("--nonoise", action='store_true')
-opt = parser.parse_args(args=[])
+opt = parser.parse_args()
+# opt = parser.parse_args(args=[])
 
 if __name__ == '__main__':
     print(opt.multigpu)

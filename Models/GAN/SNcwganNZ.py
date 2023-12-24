@@ -20,7 +20,7 @@ import functools
 from Models.GAN.networks import *
 from Models.Transformer.DTN import DTN
 from Models.GAN.attention import SN_AttentionDiscirminator
-
+import numpy as np
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -75,10 +75,10 @@ class SNCWGANNoNoise():
         if not os.path.exists(self.root):
             os.makedirs(self.root)
         self.metrics = {
-            'MRAE':[],
-            'RMSE':[],
-            'PSNR':[],
-            'SAM':[]
+            'MRAE':np.zeros(shape=[self.end_epoch]),
+            'RMSE':np.zeros(shape=[self.end_epoch]),
+            'PSNR':np.zeros(shape=[self.end_epoch]),
+            'SAM':np.zeros(shape=[self.end_epoch])
         }
     
     def load_dataset(self):
@@ -221,10 +221,10 @@ class SNCWGANNoNoise():
             # losses_ssim.update(loss_ssim.data)
         criterion_sam.reset()
         criterion_psnr.reset()
-        self.metrics['MRAE'].append(losses_mrae.avg)
-        self.metrics['RMSE'].append(losses_rmse.avg)
-        self.metrics['PSNR'].append(losses_psnr.avg)
-        self.metrics['SAM'].append(losses_sam.avg)
+        self.metrics['MRAE'][self.epoch]=losses_mrae.avg.cpu().detach().numpy()
+        self.metrics['RMSE'][self.epoch]=losses_rmse.avg.cpu().detach().numpy()
+        self.metrics['PSNR'][self.epoch]=losses_psnr.avg.cpu().detach().numpy()
+        self.metrics['SAM'][self.epoch]=losses_sam.avg.cpu().detach().numpy()
         self.save_metrics()
         return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg
     
