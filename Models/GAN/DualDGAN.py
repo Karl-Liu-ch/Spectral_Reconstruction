@@ -49,6 +49,7 @@ class DualDGAN(BaseModel):
         self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/DualDGAN/'
         self.init_Net()
         self.init_metrics()
+        self.nonoise = True
     
     def init_Net(self):
         self.G = DTN(in_dim=3, 
@@ -254,4 +255,7 @@ if __name__ == '__main__':
             spec.load_checkpoint()
         except:
             print('pretrained model loading failed')
-    spec.train()
+    if opt.mode == 'train':
+        spec.train()
+    elif opt.mode == 'test':
+        spec.test('DualDGAN')

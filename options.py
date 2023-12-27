@@ -3,6 +3,7 @@ sys.path.append('./')
 import argparse
 parser = argparse.ArgumentParser(description="Spectral Recovery Toolbox")
 parser.add_argument('--method', type=str, default='mst_plus_plus')
+parser.add_argument('--mode', type=str, default='train')
 parser.add_argument('--G', type=str, default='res')
 parser.add_argument('--pretrained_model_path', type=str, default=None)
 parser.add_argument("--batch_size", type=int, default=64, help="batch size")
