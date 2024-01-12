@@ -25,10 +25,7 @@ from ema_pytorch import EMA
 
 from accelerate import Accelerator
 
-from denoising_diffusion_pytorch.attend import Attend
-from denoising_diffusion_pytorch.fid_evaluation import FIDEvaluation
-
-from denoising_diffusion_pytorch.version import __version__
+from Models.Diffusion_Model.attend import Attend
 
 # constants
 
@@ -951,24 +948,6 @@ class Trainer(object):
 
         self.calculate_fid = calculate_fid and self.accelerator.is_main_process
 
-        if self.calculate_fid:
-            if not is_ddim_sampling:
-                self.accelerator.print(
-                    "WARNING: Robust FID computation requires a lot of generated samples and can therefore be very time consuming."\
-                    "Consider using DDIM sampling to save time."
-                )
-            self.fid_scorer = FIDEvaluation(
-                batch_size=self.batch_size,
-                dl=self.dl,
-                sampler=self.ema.ema_model,
-                channels=self.channels,
-                accelerator=self.accelerator,
-                stats_dir=results_folder,
-                device=self.device,
-                num_fid_samples=num_fid_samples,
-                inception_block_idx=inception_block_idx
-            )
-
         if save_best_and_latest_only:
             assert calculate_fid, "`calculate_fid` must be True to provide a means for model evaluation for `save_best_and_latest_only`."
             self.best_fid = 1e10 # infinite
@@ -988,8 +967,7 @@ class Trainer(object):
             'model': self.accelerator.get_state_dict(self.model),
             'opt': self.opt.state_dict(),
             'ema': self.ema.state_dict(),
-            'scaler': self.accelerator.scaler.state_dict() if exists(self.accelerator.scaler) else None,
-            'version': __version__
+            'scaler': self.accelerator.scaler.state_dict() if exists(self.accelerator.scaler) else None
         }
 
         torch.save(data, str(self.results_folder / f'model-{milestone}.pt'))

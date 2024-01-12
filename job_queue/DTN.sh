@@ -13,8 +13,8 @@
 #BSUB -gpu "num=1:mode=exclusive_process"
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
 #BSUB -W 24:00
-# request 40GB of system-memory
-#BSUB -R "rusage[mem=40GB]"
+# request 80GB of system-memory
+#BSUB -R "rusage[mem=80GB]"
 ### -- set the email address --
 # please uncomment the following line and put in your e-mail address,
 # if you want to receive e-mail notifications on a non-default address
@@ -36,4 +36,4 @@ source ./miniconda3/bin/activate
 conda activate pytorch
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u Models/Transformer/DTN.py --gpu_id 0 --batch_size 64 --loadmodel
+python -u Models/Transformer/DTN.py --gpu_id 0 --batch_size 64

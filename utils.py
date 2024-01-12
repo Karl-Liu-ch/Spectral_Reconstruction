@@ -50,7 +50,7 @@ def SaveSpectral(spectensor, i, root = '/work3/s212645/Spectral_Reconstruction/F
     mat['cube'] = specnp
     rgb = reconRGBfromNumpy(specnp)
     mat['rgb'] = rgb
-    scipy.io.savemat(root + name, mat)
+    scipy.io.savemat(root + name, mat, do_compression=True)
     return rgb
 
 class AverageMeter(object):
@@ -129,6 +129,7 @@ class SAMLoss(nn.Module):
         super().__init__()
         
     def forward(self, preds, target):
+        assert preds.shape == target.shape
         dot_product = (preds * target).sum(dim=1)
         preds_norm = preds.norm(dim=1)
         target_norm = target.norm(dim=1)

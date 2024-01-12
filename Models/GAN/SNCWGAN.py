@@ -18,6 +18,7 @@ from Models.Transformer.DTN import DTN
 import numpy as np
 from Models.GAN.Basemodel import BaseModel, criterion_mrae, AverageMeter, SAM
 from Models.GAN.Utils import Log_loss, Itself_loss
+from Models.Transformer.MST_Plus_Plus import MST_Plus_Plus
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -27,10 +28,12 @@ else:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 NONOISE = opt.nonoise
+criterion_mrae = Loss_MRAE()
 
 class SNCWGAN(BaseModel):
     def __init__(self, opt, multiGPU=False):
         super().__init__(opt, multiGPU)
+        self.lossl1 = criterion_mrae
         self.lamda = 100
         self.lambdasam = 100
         self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGAN/' + self.opt.G + '/'
@@ -48,20 +51,18 @@ class SNCWGAN(BaseModel):
                     bottleblock = 4)
             self.nonoise = True
             print('DTN, No noise')
+        if self.opt.G == 'MST':
+            self.G = MST_Plus_Plus()
+            self.nonoise = True
+            print('MST, No noise')
         elif self.opt.G == 'res':
             self.G = ResnetGenerator(6, 31)
             self.nonoise = False
             print('ResnetGenerator, with noise')
         elif self.opt.G == 'dense':
-            self.G = DensenetGenerator(inchannels = 6, 
-                 outchannels = 31, 
-                 num_init_features = 64, 
-                 block_config = (6, 12, 24, 16),
-                 bn_size = 4, 
-                 growth_rate = 32, 
-                 center_layer = 6
-                 )
-            self.nonoise = False
+            self.G = DensenetGenerator(inchannels = 3, 
+                 outchannels = 31)
+            self.nonoise = True
             self.lambdasam = 0
             print('DensenetGenerator, with noise')
         self.D = SN_Discriminator(34)
@@ -112,10 +113,10 @@ class SNCWGAN(BaseModel):
                     p.requires_grad = False
                 pred_fake = self.D(fakeAB)
                 loss_G = -pred_fake.mean(0).view(1)
-                # lossl1 = self.lossl1(x_fake, labels) * self.lamda
-                # losssam = SAM(x_fake, labels) * self.lambdasam
-                lossl1 = self.lossl1(x_fake, labels) * torch.abs(loss_G.detach() / self.lossl1(x_fake, labels).detach()).detach()
-                losssam = SAM(x_fake, labels) * torch.abs(loss_G.detach() / SAM(x_fake, labels).detach()).detach()
+                lossl1 = self.lossl1(x_fake, labels) * self.lamda
+                losssam = SAM(x_fake, labels) * self.lambdasam
+                # lossl1 = self.lossl1(x_fake, labels) * torch.abs(loss_G.detach() / self.lossl1(x_fake, labels).detach()).detach()
+                # losssam = SAM(x_fake, labels) * torch.abs(loss_G.detach() / SAM(x_fake, labels).detach()).detach()
                 loss_G += lossl1 + losssam
                 # train the generator
                 loss_G.backward()
@@ -153,4 +154,8 @@ if __name__ == '__main__':
             spec.load_checkpoint()
         except:
             print('pretrained model loading failed')
-    spec.train()
+    if opt.mode == 'train':
+        spec.train()
+        spec.test('SNCWGAN'+spec.opt.G)
+    elif opt.mode == 'test':
+        spec.test('SNCWGAN'+spec.opt.G)

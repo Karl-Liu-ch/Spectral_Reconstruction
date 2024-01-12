@@ -18,6 +18,7 @@ from Models.Transformer.DTN import DTN
 import numpy as np
 from Models.GAN.Basemodel import BaseModel, criterion_mrae, AverageMeter, SAM, Loss_SAM, Loss_SID, Loss_Fid, Loss_SSIM
 from Models.GAN.Utils import Log_loss, Itself_loss
+from Models.Transformer.MST_Plus_Plus import MST_Plus_Plus
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -40,6 +41,7 @@ criterion_ssim = Loss_SSIM().cuda()
 class DualDGAN(BaseModel):
     def __init__(self, opt, multiGPU=False):
         super().__init__(opt, multiGPU)
+        self.lossl1 = criterion_mrae
         self.lamda = 100
         self.lambdasam = 100
         self.alpha = 0.2
@@ -52,12 +54,20 @@ class DualDGAN(BaseModel):
         self.nonoise = True
     
     def init_Net(self):
-        self.G = DTN(in_dim=3, 
-                 out_dim=31,
-                 img_size=[128, 128], 
-                 window_size=8, 
-                 n_block=[2,2,2,2], 
-                 bottleblock = 4)
+        if self.opt.G == 'DTN':
+            self.G = DTN(in_dim=3, 
+                    out_dim=31,
+                    img_size=[128, 128], 
+                    window_size=8, 
+                    n_block=[2,2,2,2], 
+                    bottleblock = 4)
+        if self.opt.G == 'MST':
+            self.G = MST_Plus_Plus()
+        elif self.opt.G == 'res':
+            self.G = ResnetGenerator(3, 31)
+        elif self.opt.G == 'dense':
+            self.G = DensenetGenerator(inchannels = 3, 
+                 outchannels = 31)
         self.D1 = SN_Discriminator(34)
         self.D2 = SN_Discriminator(34)
         if self.multiGPU:

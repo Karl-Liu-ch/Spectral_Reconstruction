@@ -4,7 +4,7 @@
 #BSUB -q gpua100
 #BSUB -R "select[gpu80gb]"
 ### -- set the job Name --
-#BSUB -J DDPM
+#BSUB -J HSCNN_Plus
 ### -- ask for number of cores (default: 1) --
 #BSUB -n 8
 ### -- specify that the cores must be on the same host --
@@ -25,8 +25,8 @@
 #BSUB -B
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -o DDPM%J.out
-#BSUB -e DDPM%J.err
+#BSUB -o HSCNN_Plus%J.out
+#BSUB -e HSCNN_Plus%J.err
 # -- end of LSF options --
 nvidia-smi
 module load cuda/11.8
@@ -36,4 +36,4 @@ source ./miniconda3/bin/activate
 conda activate pytorch
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u Models/Diffusion_Model/model.py --gpu_id 0 --batch_size 64
+python -u Models/GAN/HSCNN_Plus.py --gpu_id 0 --batch_size 32

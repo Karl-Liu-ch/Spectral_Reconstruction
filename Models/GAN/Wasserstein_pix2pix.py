@@ -8,7 +8,7 @@ from einops.layers.torch import Rearrange
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 # from hsi_dataset import TrainDataset, ValidDataset
-from dataset.dataset import TrainDataset, ValidDataset, TestDataset
+from dataset.datasets import TrainDataset, ValidDataset, TestDataset
 from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Loss_Fid, Loss_SAM, Loss_SSIM, reconRGB, Loss_SID, SAM
 from options import opt
 import os

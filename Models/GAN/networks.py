@@ -460,20 +460,6 @@ class SNResnetDiscriminator(nn.Module):
         output = self.Net(input)
         return output
 
-class DenseLayer(nn.Module):
-    def __init__(self, in_channels, bn_size, growth_rate) -> None:
-        super().__init__()
-        layer = [nn.BatchNorm2d(in_channels),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(in_channels, bn_size * growth_rate, kernel_size=1, stride=1, bias=False),
-                nn.BatchNorm2d(bn_size * growth_rate),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(bn_size * growth_rate, growth_rate, kernel_size=3, stride=1, padding=1, bias=False)]
-        self.Net = nn.Sequential(*layer)
-        
-    def forward(self, input):
-        return torch.concat([input, self.Net(input)], dim=1)
-
 class SNTransformDiscriminator(SNResnetDiscriminator):
     def __init__(self, input_nums = 34, n_layer = 3):
         super().__init__(input_nums = 34, n_layer = 3)
@@ -497,88 +483,79 @@ class SNTransformDiscriminator(SNResnetDiscriminator):
                     nn.Flatten() ]
         self.Net = nn.Sequential(*model)
 
-class DenseBlock(nn.Module):
-    def __init__(self, 
-                num_layers,
-                num_input_features,
-                bn_size,
-                growth_rate) -> None:
+class DenseLayer(nn.Module):
+    def __init__(self, dim):
         super().__init__()
-        model = []
-        for i in range(num_layers):
-            model += [DenseLayer(num_input_features + growth_rate * i, bn_size = bn_size, growth_rate =growth_rate)]
-        self.Net = nn.Sequential(*model)
-        
-    def forward(self, input):
-        return self.Net(input)
+        self.conv1 = nn.Conv2d(dim, 128, 1, 1, 0, bias=False)
 
-def ReverseTuples(tuples):
-    new_tup = tuples[::-1]
-    return new_tup
+        self.conv_up1 = nn.Conv2d(128, 64, 7, 1, 3, bias=False)
+        self.conv_up2 = nn.Conv2d(64, 32, 5, 1, 2, bias=False)
+        self.conv_up3 = nn.Conv2d(32, 16, 3, 1, 1, bias=False)
+        self.conv_up4 = nn.Conv2d(16, 16, 1, 1, 0, bias=False)
+
+        self.conv_fution = nn.Conv2d(128, 32, 1, 1, 0, bias=False)
+
+        #### activation function
+        self.relu = nn.ReLU(inplace=True)
+        
+    def forward(self, x):
+        """
+        x: [b,c,h,w]
+        return out:[b,c,h,w]
+        """
+        feat = self.relu(self.conv1(x))
+        feat_up1 = self.relu(self.conv_up1(feat))
+        feat_up2 = self.relu(self.conv_up2(feat_up1))
+        feat_up3 = self.relu(self.conv_up3(feat_up2))
+        feat_up4 = self.relu(self.conv_up4(feat_up3))
+        feat_fution = torch.cat([feat_up1,feat_up2,feat_up3,feat_up4],dim=1)
+        feat_fution = self.relu(self.conv_fution(feat_fution))
+        out = torch.cat([x, feat_fution], dim=1)
+        return out
+    
+class DenseBlock(nn.Module):
+    def __init__(self, dim, num_blocks=78):
+        super(DenseBlock, self).__init__()
+
+        self.conv_up1 = nn.Conv2d(dim, 32, 7, 1, 3, bias=False)
+        self.conv_up2 = nn.Conv2d(32, 32, 5, 1, 2, bias=False)
+        self.conv_up3 = nn.Conv2d(32, 32, 3, 1, 1, bias=False)
+        self.conv_up4 = nn.Conv2d(32, 32, 1, 1, 0, bias=False)
+
+        dfus_blocks = [DenseLayer(dim=128+32*i) for i in range(num_blocks)]
+        self.dfus_blocks = nn.Sequential(*dfus_blocks)
+
+        #### activation function
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        """
+        x: [b,c,h,w]
+        return out:[b,c,h,w]
+        """
+        feat_up1 = self.relu(self.conv_up1(x))
+        feat_up2 = self.relu(self.conv_up2(feat_up1))
+        feat_up3 = self.relu(self.conv_up3(feat_up2))
+        feat_up4 = self.relu(self.conv_up4(feat_up3))
+        feat_fution = torch.cat([feat_up1,feat_up2,feat_up3,feat_up4],dim=1)
+        out = self.dfus_blocks(feat_fution)
+        return out
 
 class DensenetGenerator(nn.Module):
-    def __init__(self, 
-                 inchannels, 
-                 outchannels, 
-                 num_init_features = 64, 
-                 block_config = (6, 12, 24, 16), 
-                 bn_size = 4, 
-                 growth_rate = 32, 
-                 center_layer = 6
-                 ):
-        super().__init__()
-        def DownSample(num_input_features, num_output_features):
-            layer = [nn.BatchNorm2d(num_input_features), 
-                     nn.ReLU(inplace=True), 
-                     nn.Conv2d(num_input_features, num_output_features, kernel_size=3, stride=2, padding=1, bias=False)]
-            return layer
-        
-        def UpSample(num_input_features, num_output_features):
-            layer = [nn.BatchNorm2d(num_input_features), 
-                     nn.ReLU(inplace=True), 
-                     nn.ConvTranspose2d(num_input_features, num_output_features, kernel_size=4, stride=2, padding=1, bias=False)]
-            return layer
-        
-        layer = [nn.Conv2d(inchannels, num_init_features, kernel_size=1, stride=1, bias=False)]
-        num_features = num_init_features
-        for i, num_layers in enumerate(block_config):
-            layer += [DenseBlock(
-                num_layers=num_layers,
-                num_input_features=num_features,
-                bn_size=bn_size,
-                growth_rate=growth_rate,
-            )]
-            num_features = num_features + num_layers * growth_rate
-            layer += DownSample(num_input_features=num_features, num_output_features=num_features // 2)
-            num_features = num_features // 2
-        
-        layer += [DenseBlock(
-            num_layers=center_layer,
-            num_input_features=num_features,
-            bn_size=bn_size,
-            growth_rate=growth_rate,
-        )]
-        num_features = num_features + center_layer * growth_rate
-        
-        block_config = ReverseTuples(block_config)
-        for i, num_layers in enumerate(block_config):
-            layer += UpSample(num_input_features=num_features, num_output_features=num_features // 2)
-            num_features = num_features // 2
-            layer += [DenseBlock(
-                num_layers=num_layers,
-                num_input_features=num_features,
-                bn_size=bn_size,
-                growth_rate=growth_rate,
-            )]
-            num_features = num_features + num_layers * growth_rate
-        
-        layer += [nn.BatchNorm2d(num_features), 
-                  nn.ReLU(inplace=True), 
-                  nn.Conv2d(num_features, outchannels, kernel_size=1, stride=1)]
-        self.Net = nn.Sequential(*layer)
-        
-    def forward(self, input):
-        return self.Net(input)
+    def __init__(self, inchannels=3, outchannels=31, num_blocks=30):
+        super(DensenetGenerator, self).__init__()
+
+        self.ddfn = DenseBlock(dim=inchannels, num_blocks=num_blocks)
+        self.conv_out = nn.Conv2d(128+32*num_blocks, outchannels, 1, 1, 0, bias=False)
+
+    def forward(self, x):
+        """
+        x: [b,c,h,w]
+        return out:[b,c,h,w]
+        """
+        fea = self.ddfn(x)
+        out =  self.conv_out(fea)
+        return out
 
 class Spectral_Discriminator(nn.Module):
     def __init__(self):
@@ -586,10 +563,10 @@ class Spectral_Discriminator(nn.Module):
         
 
 if __name__ == '__main__':
-    model = SNTransformDiscriminator(34, 3)
+    model = DensenetGenerator()
     model = model.cuda()
     
-    input = torch.rand([1, 34, 128, 128])
+    input = torch.rand([1, 3, 128, 128])
     input = input.cuda()
     output = model(input)
     print(output.shape)

@@ -7,7 +7,7 @@ from torch.optim import Adam
 import os
 import sys
 sys.path.append('./')
-from dataset.dataset import TrainDataset, ValidDataset, TestDataset
+from dataset.datasets import TrainDataset, ValidDataset, TestDataset
 import math
 from inspect import isfunction
 from functools import partial
@@ -24,7 +24,6 @@ import numpy as np
 import torch
 from torch import nn, einsum
 import torch.nn.functional as F
-from test import test
 from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Loss_Fid, Loss_SAM, Loss_SSIM, reconRGB, Loss_SID, SAM, SaveSpectral
 import scipy.io
 
@@ -400,7 +399,8 @@ def sigmoid_beta_schedule(timesteps):
 timesteps = 1000
 
 # define beta schedule
-betas = linear_beta_schedule(timesteps=timesteps)
+# betas = linear_beta_schedule(timesteps=timesteps)
+betas = cosine_beta_schedule(timesteps=timesteps)
 
 # define alphas 
 alphas = 1. - betas
@@ -460,6 +460,7 @@ def p_losses(denoise_model, x_start, x_condition, t, noise=None, loss_type="l1")
         loss = F.mse_loss(noise, predicted_noise)
     elif loss_type == "huber":
         loss = F.smooth_l1_loss(noise, predicted_noise)
+        loss += SAM(noise, predicted_noise)
     else:
         raise NotImplementedError()
 
@@ -491,21 +492,14 @@ def p_sample(model, condition, x, t, t_index):
 @torch.no_grad()
 def p_sample_loop(model, condition, shape):
     device = next(model.parameters()).device
-
     b = shape[0]
-    # start from pure noise (for each example in the batch)
     img = torch.randn(shape, device=device)
-    imgs = []
-
-    # for i in tqdm(reversed(range(0, timesteps)), desc='sampling loop time step', total=timesteps):
-    #     img = p_sample(model, condition, img, torch.full((b,), i, device=device, dtype=torch.long), i)
-    #     imgs.append(img.unsqueeze(dim=0))
     for i in reversed(range(0, timesteps)):
         img = p_sample(model, condition, img, torch.full((b,), i, device=device, dtype=torch.long), i)
     return img
 
 @torch.no_grad()
-def sample(model, condition, image_size, batch_size=16, channels=3):
+def sample(model, condition, image_size, batch_size=16, channels=31):
     return p_sample_loop(model, condition, shape=(batch_size, channels, image_size, image_size))
 
 def num_to_groups(num, divisor):
@@ -556,6 +550,8 @@ model = Unet(
     self_condition=True,
     dim_mults=(1, 2, 4,)
 )
+if opt.multigpu:
+    model = nn.DataParallel(model)
 model.to(device)
 
 def save_checkpoint(epoch, model, optim, path, opt, best = False):
@@ -594,14 +590,13 @@ def load_checkpoint(path, model, optim, epoch, opt):
 epoch = 0
 image_size = 128
 channels = 31
-epochs = 100
+epochs = 1000
 optimizer = Adam(model.parameters(), lr=1e-3)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs, eta_min=1e-6)
 try:
     model, optimizer, epoch = load_checkpoint(path, model, optimizer, epoch, opt)
 except:
     pass 
-
 
 val_data = ValidDataset(data_root='/work3/s212645/Spectral_Reconstruction/', crop_size=128, valid_ratio = 0.1, test_ratio=0.1)
 print("Validation set samples: ", len(val_data))
@@ -612,26 +607,22 @@ train_data = TrainDataset(data_root='/work3/s212645/Spectral_Reconstruction/', c
 train_loader = DataLoader(dataset=train_data, batch_size=opt.batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
 while epoch < epochs:
+    losses = []
     for step, (images, labels) in enumerate(train_loader):
         labels = labels.to(device)
         images = images.to(device)
         images = Variable(images)
         labels = Variable(labels)
         optimizer.zero_grad()
-
         batch_size = labels.shape[0]
-
         # Algorithm 1 line 3: sample t uniformally for every example in the batch
         t = torch.randint(0, timesteps, (batch_size,), device=device).long()
-
         loss = p_losses(model, labels, images, t, loss_type="huber")
-
-        if step % 100 == 0:
-            print("Loss:", loss.item(), 'lr: ', optimizer.param_groups[0]['lr'])
-
         loss.backward()
         optimizer.step()
-    if epoch % 10 == 9:
+        losses.append(loss.item())
+    print("Epoch: ", epoch, "Loss:", np.array(losses).mean(), 'lr: ', optimizer.param_groups[0]['lr'])
+    if epoch % 10 == 0:
         mrae = validate(model, val_loader)
         print(mrae)
     save_checkpoint(epoch, model, optimizer, path, opt, best = False)
@@ -647,7 +638,7 @@ def test(Model, modelname, batch_size = 8):
         os.mkdir('/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/' + modelname + '/')
     except:
         pass
-    test_data = TestDataset(data_root=opt.data_root, crop_size=batch_size, valid_ratio = 0.1, test_ratio=0.1)
+    test_data = TestDataset(data_root=opt.data_root, crop_size=opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
     print("Test set samples: ", len(test_data))
     test_loader = DataLoader(dataset=test_data, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
     Model.eval()
@@ -708,7 +699,7 @@ def test(Model, modelname, batch_size = 8):
 
 file = '/zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/result.txt'
 f = open(file, 'a')
-mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname)
+mrad, rmse, psnr, sam, sid, fid, ssim, psnrrgb = test(model, modelname, batch_size=8)
 print(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')
 f.write(modelname+':\n')
 f.write(f'MRAE:{mrad}, RMSE: {rmse}, PNSR:{psnr}, SAM: {sam}, SID: {sid}, FID: {fid}, SSIM: {ssim}, PSNRRGB: {psnrrgb}')

@@ -9,7 +9,7 @@
 ### -- specify that the cores must be on the same host --
 #BSUB -R "span[hosts=1]"
 ### -- Select the resources: 1 gpu in exclusive process mode --
-#BSUB -gpu "num=2:mode=exclusive_process"
+#BSUB -gpu "num=1:mode=exclusive_process"
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now
 #BSUB -W 24:00
 # request 100GB of system-memory
@@ -29,7 +29,6 @@
 # -- end of LSF options --
 
 nvidia-smi
-export CUDA_VISIBLE_DEVICES=0,1
 
 # Load modules
 module load cuda/11.8
@@ -41,4 +40,4 @@ conda activate pytorch
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
 # torchrun -u Models/VAE/cvae.py
-python -u -m torch.distributed.launch --use-env Models/VAE/cvae.py 
+python -u Models/VAE/cvae.py --batch_size 256

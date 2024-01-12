@@ -1,25 +1,19 @@
 import sys
 sys.path.append('./')
-import torch.nn as nn
 import torch
+from torch import nn
 from torch.nn import functional as F
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
-# from hsi_dataset import TrainDataset, ValidDataset
 from dataset.datasets import TrainDataset, ValidDataset, TestDataset
-from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Loss_Fid, \
-    Loss_SAM, Loss_SSIM, reconRGB, Loss_SID, SAM, SaveSpectral
-from options import opt
+from utils import *
 import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
-from torch import autograd
-import functools
+from options import opt
 import numpy as np
-import scipy.io
-
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -28,7 +22,6 @@ if opt.multigpu:
 else:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-NONOISE = opt.nonoise
 # loss function
 criterion_mrae = Loss_MRAE()
 criterion_rmse = Loss_RMSE()
@@ -39,36 +32,28 @@ criterion_sid = Loss_SID()
 criterion_fid = Loss_Fid().cuda()
 criterion_ssim = Loss_SSIM().cuda()
 
-def normalize(input):
-    return (input - input.min()) / (input.max() - input.min())
-
 class BaseModel():
-    def __init__(self, opt, multiGPU = False):
-        super().__init__()
-        self.multiGPU = multiGPU
+    def __init__(self, opt, model, model_name, multiGPU = False) -> None:
         self.opt = opt
-        self.nonoise = NONOISE
+        # iterations
         self.epoch = 0
         self.end_epoch = opt.end_epoch
-        per_epoch_iteration = 1000
-        self.total_iteration = per_epoch_iteration*opt.end_epoch
         self.iteration = 0
-        
-        self.lamda = 100
-        self.lambdasam = 100
-        # self.lossl1 = nn.L1Loss()
-        self.lossl1 = criterion_mrae
-    
-    def init_Net(self):
+        self.model = model
+        self.multiGPU = multiGPU
         if self.multiGPU:
-            self.G = nn.DataParallel(self.G)
-            self.D = nn.DataParallel(self.D)
-        self.G.cuda()
-        self.D.cuda()
-        self.optimG = optim.Adam(self.G.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerG = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimG, self.end_epoch, eta_min=1e-6)
-        self.optimD = optim.Adam(self.D.parameters(), lr=self.opt.init_lr, betas=(0.9, 0.999))
-        self.schedulerD = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimD, self.end_epoch, eta_min=1e-6)
+            self.model = nn.DataParallel(self.model)
+        self.model.to(device)
+        self.name = model_name
+        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/'+model_name+'/'
+        self.optimizer = optim.Adam(self.model.parameters(), lr=opt.init_lr, betas=(0.9, 0.999))
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, self.end_epoch, eta_min=1e-6)     
+        # make checkpoint dir
+        if not os.path.exists(opt.outf):
+            os.makedirs(opt.outf)
+        if not os.path.exists(self.root):
+            os.makedirs(self.root)
+        self.init_metrics()
     
     def init_metrics(self):
         if not os.path.exists(self.root):
@@ -78,7 +63,7 @@ class BaseModel():
             'RMSE':np.zeros(shape=[self.end_epoch]),
             'PSNR':np.zeros(shape=[self.end_epoch]),
             'SAM':np.zeros(shape=[self.end_epoch])
-        }
+        }    
     
     def load_dataset(self):
         # load dataset
@@ -87,14 +72,55 @@ class BaseModel():
         print(f"Iteration per epoch: {len(self.train_data)}")
         self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
         print("Validation set samples: ", len(self.val_data))
-        # self.test_data = TestDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
-        # print("Validation set samples: ", len(self.val_data))
-        
+
     def train(self):
         self.load_dataset()
-                
+        self.model.train()
+        record_mrae_loss = 1000
+        while self.epoch<self.end_epoch:
+            losses = AverageMeter()
+            train_loader = DataLoader(dataset=self.train_data, batch_size=self.opt.batch_size, shuffle=True, num_workers=2,
+                                    pin_memory=True, drop_last=True)
+            val_loader = DataLoader(dataset=self.val_data, batch_size=self.opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
+            for i, (images, labels) in enumerate(train_loader):
+                labels = labels.to(device)
+                images = images.to(device)
+                images = Variable(images)
+                labels = Variable(labels)
+                lr = self.optimizer.param_groups[0]['lr']
+                self.optimizer.zero_grad()
+                [output, input, mu, log_var] = self.model(labels, images)
+                if self.multiGPU:
+                    Loss_dict = self.model.module.loss_function(output, input, mu, log_var)
+                else:
+                    Loss_dict = self.model.loss_function(output, input, mu, log_var)
+                loss = Loss_dict['loss']
+                loss_mrae = criterion_mrae(output, input)
+                loss += loss_mrae
+                loss.backward()
+                losses.update(loss_mrae.data)
+                self.optimizer.step()
+                self.iteration = self.iteration+1
+                if self.iteration % 20 == 0:
+                    print('[epoch:%d/%d],lr=%.9f,train_losses.avg=%.9f'
+                        % (self.epoch, self.end_epoch, lr, losses.avg))
+            self.save_checkpoint()
+            print(f'Saving to {self.root}')
+            mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
+            print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
+            if mrae_loss < record_mrae_loss:
+                record_mrae_loss = mrae_loss
+                self.save_checkpoint(best=True)
+            # print loss
+            print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
+                "Test RMSE: %.9f, Test PSNR: %.9f, SAM: %.9f, SID: %.9f " % (self.iteration, 
+                                                                self.epoch, lr, 
+                                                                losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss))
+            self.epoch += 1
+            self.scheduler.step()
+            
     def validate(self, val_loader):
-        self.G.eval()
+        self.model.eval()
         losses_mrae = AverageMeter()
         losses_rmse = AverageMeter()
         losses_psnr = AverageMeter()
@@ -103,15 +129,12 @@ class BaseModel():
         for i, (input, target) in enumerate(val_loader):
             input = input.cuda()
             target = target.cuda()
-            if self.nonoise:
-                z = input
-            else:
-                z = torch.randn_like(input).cuda()
-                z = torch.concat([z, input], dim=1)
-                z = Variable(z)
             with torch.no_grad():
                 # compute output
-                output = self.G(z)
+                if self.multiGPU:
+                    output = self.model.module.sample(input)
+                else:
+                    output = self.model.sample(input)
                 loss_mrae = criterion_mrae(output, target)
                 loss_rmse = criterion_rmse(output, target)
                 loss_psnr = criterion_psnr(output, target)
@@ -132,23 +155,23 @@ class BaseModel():
         self.save_metrics()
         return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg
     
-    def test(self, modelname):
+    def test(self):
+        modelname = self.name
         try: 
             os.mkdir('/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/')
             os.mkdir('/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/')
         except:
             pass
-        root = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/'
-        # root = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/' + modelname + '/'
+        root = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/' + modelname + '/'
         try: 
             os.mkdir('/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/')
-            # os.mkdir('/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/' + modelname + '/')
+            os.mkdir('/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/' + modelname + '/')
         except:
             pass
         test_data = TestDataset(data_root=opt.data_root, crop_size=opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
         print("Test set samples: ", len(test_data))
         test_loader = DataLoader(dataset=test_data, batch_size=opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
-        self.G.eval()
+        self.model.eval()
         losses_mrae = AverageMeter()
         losses_rmse = AverageMeter()
         losses_psnr = AverageMeter()
@@ -161,15 +184,12 @@ class BaseModel():
         for i, (input, target) in enumerate(test_loader):
             input = input.cuda()
             target = target.cuda()
-            if not self.nonoise:
-                z = torch.randn_like(input).cuda()
-                z = torch.concat([z, input], dim=1)
-                z = Variable(z)
-            else:
-                z = input
             with torch.no_grad():
                 # compute output
-                output = self.G(z)
+                if self.multiGPU:
+                    output = self.model.module.sample(input)
+                else:
+                    output = self.model.sample(input)
                 rgbs = []
                 reals = []
                 for j in range(output.shape[0]):
@@ -216,7 +236,7 @@ class BaseModel():
     
     def save_metrics(self):
         name = 'metrics.pth'
-        torch.save(self.metrics, os.path.join(self.root, name))
+        torch.save(self.metrics, self.root+name)
         
     def load_metrics(self):
         name = 'metrics.pth'
@@ -228,43 +248,87 @@ class BaseModel():
             state = {
                 'epoch': self.epoch,
                 'iter': self.iteration,
-                'G': self.G.module.state_dict(),
-                'D': self.D.module.state_dict(),
-                'optimG': self.optimG.state_dict(),
-                'optimD': self.optimD.state_dict(),
+                'state_dict': self.model.module.state_dict(),
+                'optimizer': self.optimizer.state_dict(),
             }
         else:
             state = {
                 'epoch': self.epoch,
                 'iter': self.iteration,
-                'G': self.G.state_dict(),
-                'D': self.D.state_dict(),
-                'optimG': self.optimG.state_dict(),
-                'optimD': self.optimD.state_dict(),
+                'state_dict': self.model.state_dict(),
+                'optimizer': self.optimizer.state_dict(),
             }
+
         if best: 
             name = 'net_epoch_best.pth'
             torch.save(state, os.path.join(self.root, name))
         name = 'net.pth'
         torch.save(state, os.path.join(self.root, name))
         
-    def load_checkpoint(self):
-        checkpoint = torch.load(os.path.join(self.root, 'net.pth'))
-        if self.multiGPU:
-            self.G.module.load_state_dict(checkpoint['G'])
-            self.D.module.load_state_dict(checkpoint['D'])
+    def load_checkpoint(self, best = False):
+        if best:
+            checkpoint = torch.load(os.path.join(self.root, 'net_epoch_best.pth'))
         else:
-            self.G.load_state_dict(checkpoint['G'])
-            self.D.load_state_dict(checkpoint['D'])
-        self.optimG.load_state_dict(checkpoint['optimG'])
-        self.optimD.load_state_dict(checkpoint['optimD'])
+            checkpoint = torch.load(os.path.join(self.root, 'net.pth'))
+        if self.multiGPU:
+            self.model.module.load_state_dict(checkpoint['state_dict'])
+        else:
+            self.model.load_state_dict(checkpoint['state_dict'])
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.iteration = checkpoint['iter']
         self.epoch = checkpoint['epoch']
         try:
             self.load_metrics()
         except:
             pass
-        print("pretrained model loaded, iteration: ", self.iteration)
-        
+        print("pretrained model loaded")
 
-
+class CVAECPModel(BaseModel):
+    def train(self):
+        self.load_dataset()
+        self.model.train()
+        record_mrae_loss = 1000
+        while self.epoch<self.end_epoch:
+            losses = AverageMeter()
+            train_loader = DataLoader(dataset=self.train_data, batch_size=self.opt.batch_size, shuffle=True, num_workers=2,
+                                    pin_memory=True, drop_last=True)
+            val_loader = DataLoader(dataset=self.val_data, batch_size=self.opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
+            for i, (images, labels) in enumerate(train_loader):
+                labels = labels.to(device)
+                images = images.to(device)
+                images = Variable(images)
+                labels = Variable(labels)
+                lr = self.optimizer.param_groups[0]['lr']
+                self.optimizer.zero_grad()
+                [output, input, mu0, log_var0, mu1, log_var1, mu2, log_var2] = self.model(labels, images)
+                if self.multiGPU:
+                    Loss_dict = self.model.module.loss_function(output, input, mu0, log_var0, mu1, log_var1, mu2, log_var2)
+                else:
+                    Loss_dict = self.model.loss_function(output, input, mu0, log_var0, mu1, log_var1, mu2, log_var2)
+                loss = Loss_dict['loss']
+                loss_mrae = criterion_mrae(output, input)
+                loss += loss_mrae
+                loss.backward()
+                losses.update(loss_mrae.data)
+                self.optimizer.step()
+                self.iteration = self.iteration+1
+                if self.iteration % 20 == 0:
+                    print('[epoch:%d/%d],lr=%.9f,train_losses.avg=%.9f'
+                        % (self.epoch, self.end_epoch, lr, losses.avg))
+            # if self.iteration % 1000 == 0:
+            mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
+            print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
+            # Save model
+            # if torch.abs(mrae_loss - record_mrae_loss) < 0.01 or mrae_loss < record_mrae_loss or self.iteration % 5000 == 0:
+            print(f'Saving to {self.root}')
+            self.save_checkpoint()
+            if mrae_loss < record_mrae_loss:
+                record_mrae_loss = mrae_loss
+                self.save_checkpoint(best=True)
+            # print loss
+            print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
+                "Test RMSE: %.9f, Test PSNR: %.9f, SAM: %.9f, SID: %.9f " % (self.iteration, 
+                                                                self.epoch, lr, 
+                                                                losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss))
+            self.epoch += 1
+            self.scheduler.step()

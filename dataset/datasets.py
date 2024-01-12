@@ -67,8 +67,8 @@ class TrainDataset(GetDataset):
         self.length = len(self.hyper)
 
 class TestDataset(GetDataset):
-    def __init__(self, data_root, crop_size, valid_ratio, test_ratio, arg=True):
-        super().__init__(data_root, crop_size, valid_ratio, test_ratio, arg=True)
+    def __init__(self, data_root, crop_size, valid_ratio, test_ratio, arg=False):
+        super().__init__(data_root, crop_size, valid_ratio, test_ratio, arg=False)
         self.testset = []
         for name in self.datanames:
             self.testset.append(split_test(data_root+ 'clean/' + name, valid_ratio= valid_ratio, test_ratio=test_ratio, imsize=self.crop_size))
@@ -88,12 +88,25 @@ class ValidDataset(GetDataset):
             self.hyper.extend(validset[0])
         self.length = len(self.hyper)
 
+class TestDatasetclean(GetDataset):
+    def __init__(self, data_root, arg=False):
+        self.datanames = datanames
+        self.arg = arg
+        self.rgb = []
+        self.hyper = []
+        self.testset = []
+        tail = re.compile('.dat')
+        f = os.listdir(data_root)
+        a = [(tail.search(file) != None) for file in f]
+        a.remove(False)
+        self.length = len(a)
+        for i in range(self.length):
+            name = str(i).zfill(3) + '.mat'
+            mat = scipy.io.loadmat(data_root+name)
+            self.rgb.extend(mat['rgb'])
+            self.hyper.extend(mat['cube'])
+
 if __name__ == '__main__':
-    trainset = TrainDataset(root, 128, 0.1, 0.1)
-    print(trainset.__len__())
-    train_loader = DataLoader(dataset=trainset, batch_size=64, shuffle=True, num_workers=2,
-                                pin_memory=True, drop_last=True)
-    
-    for i, (image, label) in enumerate(train_loader):
-        print(image.shape)
-        break
+    root = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/'
+    testset = TestDatasetclean(root)
+    print(testset.__len__())

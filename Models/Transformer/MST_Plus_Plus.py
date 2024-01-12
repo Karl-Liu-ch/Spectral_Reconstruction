@@ -5,6 +5,10 @@ from einops import rearrange
 import math
 import warnings
 from torch.nn.init import _calculate_fan_in_and_fan_out
+import sys
+sys.path.append('./')
+from options import opt
+from Models.Transformer.Base import BaseModel
 
 def _no_grad_trunc_normal_(tensor, mean, std, a, b):
     def norm_cdf(x):
@@ -290,3 +294,14 @@ class MST_Plus_Plus(nn.Module):
         h = self.conv_out(h)
         h += x
         return h[:, :, :h_inp, :w_inp]
+
+if __name__ == '__main__':
+    model = MST_Plus_Plus().cuda()
+    train_model = BaseModel(opt, model, model_name='MSTPlusPlus')
+    try:
+        train_model.load_checkpoint()
+        print("model loaded")
+    except:
+        pass
+    # train_model.train()
+    train_model.test()

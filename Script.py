@@ -4,12 +4,13 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, required=True)
 parser.add_argument('--model_path', type=str, required=True)
+parser.add_argument('--G', type=str, default='res')
 parser.add_argument('--gpu', type=str, default='gpua100')
 parser.add_argument('--gpu_memory', type=str, default='gpu80gb')
 parser.add_argument("--numgpu", type=int, default=1, help="numgpu")
 parser.add_argument("--sysmem", type=int, default=40, help="sysmem")
 parser.add_argument("--batch_size", type=int, default=64, help="batch size")
-parser.add_argument("--end_epoch", type=int, default=400, help="number of epochs")
+parser.add_argument("--end_epoch", type=int, default=101, help="number of epochs")
 parser.add_argument("--init_lr", type=float, default=4e-4, help="initial learning rate")
 parser.add_argument("--gpu_id", type=str, default='0,1', help='path log files')
 parser.add_argument("--multigpu", action='store_true')
@@ -65,7 +66,7 @@ command = [
 ]
 
 if opt.multigpu:
-    runline = 'python -u -m torch.distributed.launch --use-env '+opt.model_path+' --multigpu --gpu_id 0,1 ' + '--batch_size ' + str(opt.batch_size)
+    runline = 'python -u -m torch.distributed.launch --use-env '+opt.model_path+' --multigpu --gpu_id 0,1 ' + '--batch_size ' + str(opt.batch_size) + '--G ' + opt.G
     if opt.loadmodel:
         runline += ' --loadmodel'
     

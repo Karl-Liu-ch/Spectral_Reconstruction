@@ -1,5 +1,9 @@
+import sys
+sys.path.append('./')
 import torch.nn as nn
 import torch
+from Models.Transformer.Base import BaseModel
+from options import opt
 class dfus_block(nn.Module):
     def __init__(self, dim):
         super(dfus_block, self).__init__()
@@ -75,3 +79,14 @@ class HSCNN_Plus(nn.Module):
         fea = self.ddfn(x)
         out =  self.conv_out(fea)
         return out
+    
+if __name__ == '__main__':
+    model = HSCNN_Plus()
+    spec = BaseModel(opt, model, model_name='HSCNN_Plus')
+    try:
+        spec.load_checkpoint()
+        print("model loaded")
+    except:
+        pass
+    spec.train()
+    spec.test()

@@ -7,13 +7,14 @@ from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
-from dataset.dataset import TrainDataset, ValidDataset
-# from hsi_dataset import TrainDataset, ValidDataset
-from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Loss_Fid, Loss_SAM, Loss_SSIM, reconRGB, Loss_SID
+from dataset.datasets import TrainDataset, ValidDataset, TestDataset
+from utils import *
 import os
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from options import opt
+import numpy as np
+from Models.VAE.Base import BaseModel
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -181,208 +182,16 @@ class ConditionalVAE(nn.Module):
 criterion_mrae = Loss_MRAE()
 criterion_rmse = Loss_RMSE()
 criterion_psnr = Loss_PSNR()
+criterion_psnrrgb = Loss_PSNR()
 criterion_sam = Loss_SAM()
 criterion_sid = Loss_SID()
-# criterion_fid = Loss_Fid().to(device)
-# criterion_ssim = Loss_SSIM().to(device)
-
-class train_cvae():
-    def __init__(self, opt, multiGPU = False) -> None:
-        self.opt = opt
-        self.model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=128)
-        self.multiGPU = multiGPU
-        if self.multiGPU:
-            self.model = nn.DataParallel(self.model)
-        self.model.to(device)
-        self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/cvae/'
-        
-        self.optimizer = optim.Adam(self.model.parameters(), lr=opt.init_lr, betas=(0.9, 0.999))
-        
-        # iterations
-        self.epoch = 0
-        self.end_epoch = opt.end_epoch
-        per_epoch_iteration = 1000
-        self.total_iteration = per_epoch_iteration*opt.end_epoch
-        self.iteration = 0
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, self.total_iteration, eta_min=1e-6)
-        
-        self.metrics = {
-            'MRAE':[],
-            'RMSE':[],
-            'PSNR':[],
-            'SAM':[]
-        }
-        
-        # make checkpoint dir
-        if not os.path.exists(opt.outf):
-            os.makedirs(opt.outf)
-        if not os.path.exists(self.root):
-            os.makedirs(self.root)
-    
-    def load_dataset(self):
-        # load dataset
-        print("\nloading dataset ...")
-        self.train_data = TrainDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, test_ratio=0.1)
-        print(f"Iteration per epoch: {len(self.train_data)}")
-        self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, test_ratio=0.1)
-        print("Validation set samples: ", len(self.val_data))
-
-    def train(self):
-        self.load_dataset()
-        record_mrae_loss = 1000
-        while self.iteration<self.total_iteration:
-            self.model.train()
-            losses = AverageMeter()
-            train_loader = DataLoader(dataset=self.train_data, batch_size=self.opt.batch_size, shuffle=True, num_workers=2,
-                                    pin_memory=True, drop_last=True)
-            val_loader = DataLoader(dataset=self.val_data, batch_size=self.opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
-            for i, (images, labels) in enumerate(train_loader):
-                labels = labels.to(device)
-                images = images.to(device)
-                images = Variable(images)
-                labels = Variable(labels)
-                lr = self.optimizer.param_groups[0]['lr']
-                self.optimizer.zero_grad()
-                [output, input, mu, log_var] = self.model(labels, images)
-                if self.multiGPU:
-                    Loss_dict = self.model.module.loss_function(output, input, mu, log_var)
-                else:
-                    Loss_dict = self.model.loss_function(output, input, mu, log_var)
-                loss = Loss_dict['loss']
-                loss_mrae = criterion_mrae(output, input)
-                loss += loss_mrae
-                loss.backward()
-                losses.update(loss_mrae.data)
-                self.optimizer.step()
-                self.scheduler.step()
-                self.iteration = self.iteration+1
-                if self.iteration % 20 == 0:
-                    print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
-                        % (self.iteration, self.total_iteration, lr, losses.avg))
-            # if self.iteration % 1000 == 0:
-            mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
-            print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
-            # Save model
-            # if torch.abs(mrae_loss - record_mrae_loss) < 0.01 or mrae_loss < record_mrae_loss or self.iteration % 5000 == 0:
-            print(f'Saving to {self.root}')
-            self.save_checkpoint()
-            if mrae_loss < record_mrae_loss:
-                record_mrae_loss = mrae_loss
-                self.save_checkpoint(best=True)
-            # print loss
-            print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
-                "Test RMSE: %.9f, Test PSNR: %.9f, SAM: %.9f, SID: %.9f " % (self.iteration, 
-                                                                self.epoch, lr, 
-                                                                losses.avg, mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss))
-            self.epoch += 1
-                
-    def validate(self, val_loader):
-        self.model.eval()
-        losses_mrae = AverageMeter()
-        losses_rmse = AverageMeter()
-        losses_psnr = AverageMeter()
-        losses_sam = AverageMeter()
-        losses_sid = AverageMeter()
-        # losses_fid = AverageMeter()
-        # losses_ssim = AverageMeter()
-        for i, (input, target) in enumerate(val_loader):
-            input = input.to(device)
-            target = target.to(device)
-            with torch.no_grad():
-                # compute output
-                if self.multiGPU:
-                    output = self.model.module.sample(input)
-                else:
-                    output = self.model.sample(input)
-                loss_mrae = criterion_mrae(output, target)
-                loss_rmse = criterion_rmse(output, target)
-                loss_psnr = criterion_psnr(output, target)
-                loss_sam = criterion_sam(output, target)
-                loss_sid = criterion_sid(output, target)
-                # rgb = reconRGB(output)
-                # loss_fid = criterion_fid(rgb, input)
-                # loss_ssim = criterion_ssim(rgb, input)
-            # record loss
-            losses_mrae.update(loss_mrae.data)
-            losses_rmse.update(loss_rmse.data)
-            losses_psnr.update(loss_psnr.data)
-            losses_sam.update(loss_sam.data)
-            losses_sid.update(loss_sid.data)
-            # losses_fid.update(loss_fid.data)
-            # losses_ssim.update(loss_ssim.data)
-        criterion_sam.reset()
-        criterion_psnr.reset()
-        self.metrics['MRAE'].append(losses_mrae.avg)
-        self.metrics['RMSE'].append(losses_rmse.avg)
-        self.metrics['PSNR'].append(losses_psnr.avg)
-        self.metrics['SAM'].append(losses_sam.avg)
-        self.save_metrics()
-        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg
-    
-    def test(self, test_loader):
-        pass
-    
-    def save_metrics(self):
-        name = 'metrics.pth'
-        torch.save(self.metrics, os.path.join(self.root, name))
-        
-    def load_metrics(self):
-        name = 'metrics.pth'
-        checkpoint = torch.load(os.path.join(self.root, name))
-        self.metrics = checkpoint
-        
-    def save_checkpoint(self, best = False):
-        if self.multiGPU:
-            state = {
-                'epoch': self.epoch,
-                'iter': self.iteration,
-                'state_dict': self.model.module.state_dict(),
-                'optimizer': self.optimizer.state_dict(),
-            }
-        else:
-            state = {
-                'epoch': self.epoch,
-                'iter': self.iteration,
-                'state_dict': self.model.state_dict(),
-                'optimizer': self.optimizer.state_dict(),
-            }
-
-        if best: 
-            name = 'net_epoch_best.pth'
-        else:
-            name = 'net_%04depoch.pth' % self.epoch
-            oldname = 'net_%04depoch.pth' % (self.epoch - 5)
-            if os.path.exists(os.path.join(self.root, oldname)):
-                os.remove(os.path.join(self.root, oldname))
-                print(oldname, ' Removed. ')
-        torch.save(state, os.path.join(self.root, name))
-        
-    def load_checkpoint(self):
-        checkpoint = torch.load(os.path.join(self.root, 'net_epoch_best.pth'))
-        if self.multiGPU:
-            self.model.module.load_state_dict(checkpoint['state_dict'])
-        else:
-            self.model.load_state_dict(checkpoint['state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
-        self.iteration = checkpoint['iter']
-        self.epoch = checkpoint['epoch']
-        try:
-            self.load_metrics()
-        except:
-            pass
-        print("pretrained model loaded")
+criterion_fid = Loss_Fid().cuda()
+criterion_ssim = Loss_SSIM().cuda()
 
 if __name__ == '__main__':
-    # model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=64).to(device)
-    # input = torch.rand([1, 31, 64, 64]).to(device)
-    # y = torch.rand([1, 3, 64, 64]).to(device)
-    # [output, input, mu, logvar] = model(input, y)
-    # loss = model.loss_function(output, input, mu, logvar)
-    # print(loss['Reconstruction_Loss'].item())
-    # print(loss['KLD'].item())
-    spec = train_cvae(opt, multiGPU=opt.multigpu)
-    try:
-        spec.load_checkpoint()
-    except:
-        print('failed to load trained model')
+    model = ConditionalVAE(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[32, 64, 128, 256, 512], img_size=128)
+    model_name = 'CVAE'
+    spec = BaseModel(opt, model, model_name, multiGPU=opt.multigpu)
+    # spec.load_checkpoint()
     spec.train()
+    spec.test()
