@@ -59,6 +59,10 @@ class SNCWGAN(BaseModel):
             self.G = ResnetGenerator(6, 31)
             self.nonoise = False
             print('ResnetGenerator, with noise')
+        elif self.opt.G == 'unet':
+            self.G = UnetGenerator(3, 31)
+            self.nonoise = True
+            print('UnetGenerator, no noise')
         elif self.opt.G == 'dense':
             self.G = DensenetGenerator(inchannels = 3, 
                  outchannels = 31)
