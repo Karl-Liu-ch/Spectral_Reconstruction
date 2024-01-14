@@ -44,6 +44,7 @@ class pix2pixlsgan(BaseModel):
         self.nonoise = False
         self.init_Net()
         self.init_metrics()
+        self.nonoise = True
         
     def init_Net(self):
         self.G = UnetGenerator(3, 31)
