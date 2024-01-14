@@ -57,16 +57,7 @@ class pix2pixlsgan(BaseModel):
             self.criterionGAN = nn.BCEWithLogitsLoss()
         elif self.lossname == 'bce':
             self.criterionGAN = nn.BCEWithLogitsLoss()
-        
-    def load_dataset(self):
-        # load dataset
-        print("\nloading dataset ...")
-        self.train_data = TrainDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
-        print(f"Iteration per epoch: {len(self.train_data)}")
-        self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
-        print("Validation set samples: ", len(self.val_data))
-        self.test_data = TestDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
-        print("Validation set samples: ", len(self.val_data))
+        super().init_Net()
 
     def train(self):
         super().train()
