@@ -40,5 +40,5 @@ conda activate pytorch
 
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-# python -u Models/GAN/pix2pix.py
-python -u -m torch.distributed.launch --use-env Models/GAN/pix2pix.py --multigpu --batch_size 16
+python -u Models/GAN/pix2pixlsgan.py --batch_size 128 --gpu_id 0 --loadmodel --mode train
+# python -u -m torch.distributed.launch --use-env Models/GAN/pix2pix.py --multigpu --batch_size 128
