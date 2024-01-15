@@ -267,5 +267,6 @@ if __name__ == '__main__':
             print('pretrained model loading failed')
     if opt.mode == 'train':
         spec.train()
+        spec.test('DualDGAN')
     elif opt.mode == 'test':
         spec.test('DualDGAN')

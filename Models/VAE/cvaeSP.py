@@ -227,6 +227,13 @@ if __name__ == '__main__':
     model = ConditionalVAESP(in_channels=31, condition_channels=3, latent_dim=1024, hidden_dims=[64, 128], img_size=128)
     model_name = 'CVAESP'   
     spec = CVAECPModel(opt, model, model_name, multiGPU=opt.multigpu)
-    spec.load_checkpoint()
-    # spec.train()
-    spec.test()
+    if opt.loadmodel:
+        try:
+            spec.load_checkpoint()
+        except:
+            print('pretrained model loading failed')
+    if opt.mode == 'train':
+        spec.train()
+        spec.test()
+    elif opt.mode == 'test':
+        spec.test()
