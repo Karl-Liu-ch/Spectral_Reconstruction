@@ -149,6 +149,6 @@ if __name__ == '__main__':
             print('pretrained model loading failed')
     if opt.mode == 'train':
         spec.train()
-        spec.test('SNCWGAN'+spec.opt.G)
+        spec.test('pix2pix')
     elif opt.mode == 'test':
-        spec.test('SNCWGAN'+spec.opt.G)
+        spec.test('pix2pix')

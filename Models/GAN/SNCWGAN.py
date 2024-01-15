@@ -33,7 +33,7 @@ criterion_mrae = Loss_MRAE()
 class SNCWGAN(BaseModel):
     def __init__(self, opt, multiGPU=False):
         super().__init__(opt, multiGPU)
-        self.lossl1 = criterion_mrae
+        self.lossl1 = nn.L1Loss()
         self.lamda = 100
         self.lambdasam = 100
         self.root = '/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGAN/' + self.opt.G + '/'
