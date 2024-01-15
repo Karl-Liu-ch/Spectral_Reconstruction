@@ -17,7 +17,7 @@ from utils import *
 import matplotlib.pyplot as plt
 from PIL import Image
 
-def visualize_result(name, root, hsi):
+def visualize_result(name, root, hsi, width = 256, gap_height = 64):
     sample = scipy.io.loadmat(root + str(hsi).zfill(3) + '.mat')
     hyper = sample['cube']
     rgb = sample['rgb']
@@ -41,22 +41,21 @@ def visualize_result(name, root, hsi):
         images.append(image)
 
     # Calculate the total height of the result image including gaps
-    gap_height = 10
     result_height = 128 * len(images) + gap_height * (len(images) - 1)
 
     # Create a new blank image with white background
-    result_image = Image.new('RGB', (128, result_height), color='white')
+    result_image = Image.new('RGB', (width, result_height), color='white')
 
     # Paste each individual image into the result with 10 pixels gap
     for idx, image in enumerate(images):
         pil_image = Image.fromarray((image * 255).astype('uint8'))
-        result_image.paste(pil_image, (0, (128 + gap_height) * idx))
+        result_image.paste(pil_image, ((width-128) // 2, (128 + gap_height) * idx))
 
     # Add a title below the combined image
     title = name
     plt.figure(figsize=(8, 8))
     plt.imshow(result_image)
-    plt.title(title, fontsize=20, pad=10)
+    plt.title(title, fontsize=10, pad=10)
     plt.axis('off')
     plt.savefig(f'results/{name}/{hsi}.png', format='PNG', bbox_inches='tight', pad_inches=0, transparent=True, dpi=300)
 
@@ -64,8 +63,63 @@ def visualize_result(name, root, hsi):
     img = Image.open(f'results/{name}/{hsi}.png')
     img.save(f'results/{name}/{hsi}.png', format='PNG', compress_level=0)
 
+def plot_spectral_density(root, hsi):
+    sample = scipy.io.loadmat(root + str(hsi).zfill(3) + '.mat')
+    hyper = sample['cube']
+    bands = np.linspace(400,700,31)
+    b = 0
+    spectral_density = []
+    for band in bands:
+        band = int(band)
+        spectral_density.append(hyper[:,:,b].mean())
+        b += 1
+    # plt.plot(bands, spectral_density)
+    return np.asarray(spectral_density)
+
+def concat_results(hsi, modelnames, gap_height=0):
+    img1 = Image.open(f'results/GT/{hsi}.png')
+    idx = len(modelnames) + 1
+    result_width = img1.width * idx + gap_height * (idx - 1)
+    result_image = Image.new('RGB', (result_width, img1.height), color='white')
+    i = 0
+    for k, v in modelnames.items():
+        img = Image.open(f'results/{v}/{hsi}.png')
+        result_image.paste(img, ((img1.width + gap_height) * i, 0))
+        i += 1
+    img = Image.open(f'results/GT/{hsi}.png')
+    result_image.paste(img, ((img1.width + gap_height) * i, 0))
+    result_image.save(f'results/{hsi}concat.png', format='PNG', compress_level=0)
+
 if __name__ == '__main__':
-    root = '/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/SNCWGANunet/'
+    modelnames = {'CVAE': 'CVAE', 
+                  'CVAESP': 'CVAE-HS', 
+                  'pix2pix': 'pix2pix', 
+                  'SNCWGANres': 'SNCWGAN+ResNet', 
+                  'SNCWGANunet': 'SNCWGAN+Unet', 
+                  'SNCWGANdense': 'SNCWGAN+DenseNet', 
+                  'HSCNN_Plus': 'HSCNN_Plus', 
+                  'MSTPlusPlus': 'MST++', 
+                  'D2GANNZ': 'D2GAN', 
+                  'SNCWGANNoNoise': 'SNCWGAN+DT'}
+    root = '/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/'
     hsis = [5642,5453,5621]
+    # for k, v in modelnames.items():
+    #     path = root + k + '/'
+    #     Dict = {}
+    #     Dict[v] = {}
+    #     for hsi in hsis:
+    #         visualize_result(v, path, hsi, width=224, gap_height=64)
+    #         Dict[v][hsi] = plot_spectral_density(path, hsi)
+    #     modelnames[k] = Dict
+
+    # GT_dict = {}
+    # GT_dict['GT'] = {}
+    # path = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/'
+    # for hsi in hsis:
+    #     GT_dict['GT'][hsi] = plot_spectral_density(path, hsi)
+    #     visualize_result('GT', path, hsi, width=224, gap_height=64)
     for hsi in hsis:
-        visualize_result('SNCWGAN+Unet', root, hsi)
+        concat_results(hsi, modelnames, gap_height=0)
+    # bands = np.linspace(400,700,31)
+    # plt.plot(bands, GT_dict['GT'][5642])
+    # plt.show()
