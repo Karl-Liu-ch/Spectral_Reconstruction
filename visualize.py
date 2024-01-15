@@ -103,23 +103,23 @@ if __name__ == '__main__':
                   'SNCWGANNoNoise': 'SNCWGAN+DT'}
     root = '/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/'
     hsis = [5642,5453,5621]
-    # for k, v in modelnames.items():
-    #     path = root + k + '/'
-    #     Dict = {}
-    #     Dict[v] = {}
-    #     for hsi in hsis:
-    #         visualize_result(v, path, hsi, width=224, gap_height=64)
-    #         Dict[v][hsi] = plot_spectral_density(path, hsi)
-    #     modelnames[k] = Dict
+    for k, v in modelnames.items():
+        path = root + k + '/'
+        Dict = {}
+        Dict[v] = {}
+        for hsi in hsis:
+            visualize_result(v, path, hsi, width=224, gap_height=64)
+            Dict[v][hsi] = plot_spectral_density(path, hsi)
+        modelnames[k] = Dict
 
-    # GT_dict = {}
-    # GT_dict['GT'] = {}
-    # path = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/'
-    # for hsi in hsis:
-    #     GT_dict['GT'][hsi] = plot_spectral_density(path, hsi)
-    #     visualize_result('GT', path, hsi, width=224, gap_height=64)
+    GT_dict = {}
+    GT_dict['GT'] = {}
+    path = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/'
     for hsi in hsis:
-        concat_results(hsi, modelnames, gap_height=0)
+        GT_dict['GT'][hsi] = plot_spectral_density(path, hsi)
+        visualize_result('GT', path, hsi, width=224, gap_height=64)
+    # for hsi in hsis:
+    #     concat_results(hsi, modelnames, gap_height=0)
     # bands = np.linspace(400,700,31)
     # plt.plot(bands, GT_dict['GT'][5642])
     # plt.show()
