@@ -298,7 +298,7 @@ if __name__ == '__main__':
                     out_dim=31,
                     img_size=[128, 128], 
                     window_size=8, 
-                    n_block=[2,2,2,2], 
+                    n_block=[8,2,2], 
                     bottleblock = 4)
     spec = BaseModel(opt, model, model_name='DTN')
     if opt.loadmodel:
@@ -306,4 +306,9 @@ if __name__ == '__main__':
             spec.load_checkpoint()
         except:
             print('pretrained model loading failed')
-    spec.train()
+    if opt.mode == 'train':
+        spec.train()
+        spec.test()
+    elif opt.mode == 'test':
+        spec.load_checkpoint()
+        spec.test()

@@ -41,7 +41,7 @@ criterion_ssim = Loss_SSIM().cuda()
 class DualDGAN(BaseModel):
     def __init__(self, opt, multiGPU=False):
         super().__init__(opt, multiGPU)
-        self.lossl1 = criterion_mrae
+        self.lossl1 = nn.L1Loss()
         self.lamda = 100
         self.lambdasam = 100
         self.alpha = 0.2
@@ -59,7 +59,7 @@ class DualDGAN(BaseModel):
                     out_dim=31,
                     img_size=[128, 128], 
                     window_size=8, 
-                    n_block=[2,2,2,2], 
+                    n_block=[8,2,1,1], 
                     bottleblock = 4)
         if self.opt.G == 'MST':
             self.G = MST_Plus_Plus()
@@ -269,4 +269,5 @@ if __name__ == '__main__':
         spec.train()
         spec.test('DualDGAN')
     elif opt.mode == 'test':
+        spec.load_checkpoint()
         spec.test('DualDGAN')
