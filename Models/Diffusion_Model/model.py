@@ -1,13 +1,14 @@
 import sys
 sys.path.append('./')
-
+import re
 # %matplotlib inline
 from matplotlib import pyplot as plt
 from tqdm.auto import tqdm
 from einops import rearrange, reduce
 from einops.layers.torch import Rearrange
 from inspect import isfunction
-
+from torchvision import transforms
+from torchvision.transforms import Compose, ToTensor, Lambda, ToPILImage, CenterCrop, Resize
 from dataset.datasets import TrainDataset, ValidDataset, TestDataset
 from torch.optim import Adam
 from pathlib import Path
@@ -24,6 +25,7 @@ import os
 from Models.Diffusion_Model.networks import Unet
 import platform
 from utils import * 
+from visualize import *
 
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -44,6 +46,46 @@ criterion_sam = Loss_SAM()
 criterion_sid = Loss_SID()
 criterion_fid = Loss_Fid().cuda()
 criterion_ssim = Loss_SSIM().cuda()
+
+def transform(tensor):
+    tensor = tensor.clone().detach()
+    return tensor * 2.0 - 1.0
+def reverse_transform(tensor):
+    tensor = tensor.clone().detach()
+    return (tensor+1.0) / 2.0
+
+def get_beta_schedule(beta_schedule, *, beta_start, beta_end, num_diffusion_timesteps):
+    def sigmoid(x):
+        return 1 / (np.exp(-x) + 1)
+
+    if beta_schedule == "quad":
+        betas = (
+            np.linspace(
+                beta_start ** 0.5,
+                beta_end ** 0.5,
+                num_diffusion_timesteps,
+                dtype=np.float64,
+            )
+            ** 2
+        )
+    elif beta_schedule == "linear":
+        betas = np.linspace(
+            beta_start, beta_end, num_diffusion_timesteps, dtype=np.float64
+        )
+    elif beta_schedule == "const":
+        betas = beta_end * np.ones(num_diffusion_timesteps, dtype=np.float64)
+    elif beta_schedule == "jsd":  # 1/T, 1/(T-1), 1/(T-2), ..., 1
+        betas = 1.0 / np.linspace(
+            num_diffusion_timesteps, 1, num_diffusion_timesteps, dtype=np.float64
+        )
+    elif beta_schedule == "sigmoid":
+        betas = np.linspace(-6, 6, num_diffusion_timesteps)
+        betas = sigmoid(betas) * (beta_end - beta_start) + beta_start
+    else:
+        raise NotImplementedError(beta_schedule)
+    assert betas.shape == (num_diffusion_timesteps,)
+    betas = betas.astype(np.float32)
+    return torch.from_numpy(betas).to(device)
 
 def exists(x):
     return x is not None
@@ -91,7 +133,7 @@ def sigmoid_beta_schedule(timesteps):
 
 def extract(a, t, x_shape):
     batch_size = t.shape[0]
-    out = a.gather(-1, t.cpu())
+    out = a.gather(-1, t)
     return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(t.device)
 
 class Diffusion():
@@ -242,6 +284,8 @@ class Diffusion():
         while self.epoch < self.epochs:
             losses = []
             for step, (images, labels) in enumerate(train_loader):
+                images = transform(images)
+                labels = transform(labels)
                 labels = labels.to(device)
                 images = images.to(device)
                 images = Variable(images)
@@ -282,29 +326,34 @@ class Diffusion():
         losses_sid = AverageMeter()
         losses_fid = AverageMeter()
         losses_ssim = AverageMeter()
-        for i, (input, target) in enumerate(test_loader):
-            input = input.cuda()
-            target = target.cuda()
+        for i, (images, labels) in enumerate(test_loader):
+            images = transform(images)
+            labels = transform(labels)
+            images = images.cuda()
+            labels = labels.cuda()
             with torch.no_grad():
                 # compute output
-                output = self.sample(image_size=128, batch_size=input.shape[0], channels=31, cond = input)
+                output = self.sample(image_size=128, batch_size=images.shape[0], channels=31, cond = images)
+                output = reverse_transform(output)
+                labels = reverse_transform(labels)
+                images = reverse_transform(images)
                 rgbs = []
                 reals = []
                 for j in range(output.shape[0]):
                     mat = {}
-                    mat['cube'] = np.transpose(target[j,:,:,:].cpu().numpy(), [1,2,0])
-                    mat['rgb'] = np.transpose(input[j,:,:,:].cpu().numpy(), [1,2,0])
+                    mat['cube'] = np.transpose(labels[j,:,:,:].cpu().numpy(), [1,2,0])
+                    mat['rgb'] = np.transpose(images[j,:,:,:].cpu().numpy(), [1,2,0])
                     real = mat['rgb']
                     real = (real - real.min()) / (real.max()-real.min())
                     mat['rgb'] = real
                     rgb = SaveSpectral(output[j,:,:,:], i * opt.batch_size + j, root='/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/')
                     rgbs.append(rgb)
                     reals.append(real)
-                loss_mrae = criterion_mrae(output, target)
-                loss_rmse = criterion_rmse(output, target)
-                loss_psnr = criterion_psnr(output, target)
-                loss_sam = criterion_sam(output, target)
-                loss_sid = criterion_sid(output, target)
+                loss_mrae = criterion_mrae(output, labels)
+                loss_rmse = criterion_rmse(output, labels)
+                loss_psnr = criterion_psnr(output, labels)
+                loss_sam = criterion_sam(output, labels)
+                loss_sid = criterion_sid(output, labels)
                 rgbs = np.array(rgbs).transpose(0, 3, 1, 2)
                 rgbs = torch.from_numpy(rgbs).cuda()
                 reals = np.array(reals).transpose(0, 3, 1, 2)
@@ -346,19 +395,67 @@ class Diffusion():
         return MRAE
     
 if __name__ == '__main__':
-    
     timesteps = 1000
     # define beta schedule
-    betas = sigmoid_beta_schedule(timesteps=timesteps)
+    # betas = linear_beta_schedule(timesteps=timesteps)
+    betas = get_beta_schedule('sigmoid', beta_start=0.000001, beta_end=0.02, num_diffusion_timesteps=timesteps)
+    # betas = torch.from_numpy(betas)
 
     Diff = Diffusion(betas=betas, timesteps=timesteps)
-    # Diff.load_checkpoint()
-    train_data = TrainDataset(data_root='/work3/s212645/Spectral_Reconstruction/', crop_size=128, valid_ratio = 0.1, test_ratio=0.1)
-    train_loader = DataLoader(dataset=train_data, batch_size=opt.batch_size, shuffle=True, num_workers=2, pin_memory=True)
-    val_data = ValidDataset(data_root='/work3/s212645/Spectral_Reconstruction/', crop_size=128, valid_ratio = 0.1, test_ratio=0.1)
-    val_loader = DataLoader(dataset=val_data, batch_size=opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
-    Diff.train(train_loader, val_loader)
+
+    if opt.loadmodel:
+        try:
+            Diff.load_checkpoint()
+            print('model loaded')
+        except:
+            print('model loading failed')
     
-    test_data = TestDataset(data_root='/work3/s212645/Spectral_Reconstruction/', crop_size=128, valid_ratio = 0.1, test_ratio=0.1)
-    test_loader = DataLoader(dataset=test_data, batch_size=4, shuffle=False, num_workers=2, pin_memory=True)
-    Diff.test(test_loader)
+    if opt.mode == 'train':
+        train_data = TrainDataset(data_root='/work3/s212645/Spectral_Reconstruction/', crop_size=128, valid_ratio = 0.1, test_ratio=0.1)
+        train_loader = DataLoader(dataset=train_data, batch_size=opt.batch_size, shuffle=True, num_workers=2, pin_memory=True)
+        val_data = ValidDataset(data_root='/work3/s212645/Spectral_Reconstruction/', crop_size=128, valid_ratio = 0.1, test_ratio=0.1)
+        val_loader = DataLoader(dataset=val_data, batch_size=opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
+        Diff.train(train_loader, val_loader)
+    
+    elif opt.mode == 'test':
+        Diff.load_checkpoint()
+        test_data = TestDataset(data_root='/work3/s212645/Spectral_Reconstruction/', crop_size=128, valid_ratio = 0.1, test_ratio=0.1)
+        test_loader = DataLoader(dataset=test_data, batch_size=4, shuffle=False, num_workers=2, pin_memory=True)
+        Diff.test(test_loader)
+
+    elif opt.mode == 'sample':
+        for path, dir, files in os.walk('results/diffusion/'):
+            for file in files:
+                os.remove(f'{path}/{file}')
+        form = '.png'
+        form = re.compile(form)
+        test_data = TestDataset(data_root='/work3/s212645/Spectral_Reconstruction/', crop_size=128, valid_ratio = 0.1, test_ratio=0.01)
+        test_loader = DataLoader(dataset=test_data, batch_size=4, shuffle=False, num_workers=2, pin_memory=True)
+        (images, labels) = next(iter(test_loader))
+        labels = labels * 2.0 - 1.0
+        images = images * 2.0 - 1.0
+        print(labels[0].dtype)
+        x_start = labels.to(device)
+        t_ = [0, 10, 100, 200, 500, 999]
+        visualize_tensor((x_start + 1.0) / 2.0, 'gt', 'diffusion')
+        for t in t_:
+            tt = torch.tensor([t]).to(device)
+            x_noisy = Diff.q_sample(x_start, t=tt)
+            x_noisy = (x_noisy + 1.0) / 2.0
+            visualize_tensor(x_noisy, t, 'diffusion')
+        images = []
+        for path, dir, files in os.walk('results/diffusion/'):
+            files.sort()
+            for file in files:
+                if form.search(file) is not None:
+                    img = Image.open(f'{path}/{file}')
+                    images.append(img)
+        idx = len(images)
+        gap_height = 0
+        result_width = img.width * idx + gap_height * (idx - 1)
+        result_image = Image.new('RGB', (result_width, img.height), color='white')
+        i = 0
+        for img in images:
+            result_image.paste(img, ((img.width + gap_height) * i, 0))
+            i += 1
+        result_image.save(f'results/diffusion/concat.png', format='PNG', compress_level=0)

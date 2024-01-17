@@ -298,7 +298,7 @@ if __name__ == '__main__':
                     out_dim=31,
                     img_size=[128, 128], 
                     window_size=8, 
-                    n_block=[8,2,2], 
+                    n_block=[2,2,4,4], 
                     bottleblock = 4)
     spec = BaseModel(opt, model, model_name='DTN')
     if opt.loadmodel:
