@@ -96,7 +96,7 @@ class SNCWGAN(BaseModel):
                     z = torch.concat([z, images], dim=1)
                     z = Variable(z)
                 realAB = torch.concat([images, labels], dim=1)
-                D_real, D_real_feature = self.D(realAB)
+                # D_real, D_real_feature = self.D(realAB)
                 x_fake = self.G(z)
                 fakeAB = torch.concat([images, x_fake],dim=1)
                 
@@ -104,12 +104,12 @@ class SNCWGAN(BaseModel):
                 for p in self.D.parameters():
                     p.requires_grad = True
                 self.optimD.zero_grad()
-                D_real = self.D(realAB)
+                D_real, D_real_feature = self.D(realAB)
                 loss_real = -D_real.mean(0).view(1)
-                loss_real.backward()
-                D_fake, D_fake_feature = self.D(fakeAB.detach())
+                loss_real.backward(retain_graph=True)
+                D_fake, _ = self.D(fakeAB.detach())
                 loss_fake = D_fake.mean(0).view(1)
-                loss_fake.backward()
+                loss_fake.backward(retain_graph=True)
                 self.optimD.step()
                 
                 # train G
@@ -117,13 +117,13 @@ class SNCWGAN(BaseModel):
                 lrG = self.optimG.param_groups[0]['lr']
                 for p in self.D.parameters():
                     p.requires_grad = False
-                pred_fake = self.D(fakeAB)
+                pred_fake, D_fake_feature = self.D(fakeAB)
                 loss_G = -pred_fake.mean(0).view(1)
                 lossl1 = self.lossl1(x_fake, labels) * self.lamda
                 losssam = SAM(x_fake, labels) * self.lambdasam
                 perceptual_loss = 0
                 for i in range(len(D_fake_feature)):
-                    perceptual_loss += nn.MSELoss()(D_real_feature[i], D_fake_feature[i]) * 100
+                    perceptual_loss += nn.MSELoss()(D_real_feature[i], D_fake_feature[i])
                 loss_G += lossl1 + losssam + perceptual_loss
                 # train the generator
                 loss_G.backward()

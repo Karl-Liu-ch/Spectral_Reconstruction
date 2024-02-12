@@ -268,7 +268,7 @@ class SN_Discriminator_perceptualLoss(nn.Module):
         h_relu3 = self.slice3(h_relu2)
         h_relu4 = self.slice4(h_relu3)
         output = self.out(h_relu4)
-        features = [self.out(h_relu1).detach(), self.out(h_relu2).detach(), self.out(h_relu3).detach()]
+        features = [h_relu1, h_relu2, h_relu3]
         return output, features
     
 class ResnetGenerator(nn.Module):
@@ -526,8 +526,8 @@ class SNResnetDiscriminator_perceptualLoss(nn.Module):
         self.out = nn.Sequential(SNConv2d(new_ch, 1, kernel_size=(4, 4), stride=(1, 1), padding=(0, 0)),
                         nn.AdaptiveAvgPool2d((1, 1)), 
                         nn.Flatten())
-        self.perceptual_layer = nn.Sequential(nn.AdaptiveAvgPool2d((1, 1)), 
-                        nn.Flatten())
+        # self.perceptual_layer = nn.Sequential(nn.AdaptiveAvgPool2d((1, 1)), 
+        #                 nn.Flatten())
 
     def forward(self, input):
         output = self.layer1(input)
@@ -535,7 +535,7 @@ class SNResnetDiscriminator_perceptualLoss(nn.Module):
         for layers in self.resblocks:
             for layer in layers:
                 output = layer(output)
-            features.append(self.perceptual_layer(output).detach())
+            features.append(output)
         output = self.out(output)
         return output, features
 
