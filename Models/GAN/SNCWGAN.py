@@ -69,7 +69,8 @@ class SNCWGAN(BaseModel):
             self.nonoise = True
             self.lambdasam = 0
             print('DensenetGenerator, with noise')
-        self.D = SN_Discriminator(34)
+        # self.D = SN_Discriminator(34)
+        self.D = SN_Discriminator_perceptualLoss(34)
         super().init_Net()
         
     def train(self):
@@ -94,7 +95,7 @@ class SNCWGAN(BaseModel):
                     z = torch.concat([z, images], dim=1)
                     z = Variable(z)
                 realAB = torch.concat([images, labels], dim=1)
-                D_real = self.D(realAB)
+                D_real, D_real_feature = self.D(realAB)
                 x_fake = self.G(z)
                 fakeAB = torch.concat([images, x_fake],dim=1)
                 
@@ -105,7 +106,7 @@ class SNCWGAN(BaseModel):
                 D_real = self.D(realAB)
                 loss_real = -D_real.mean(0).view(1)
                 loss_real.backward()
-                D_fake = self.D(fakeAB.detach())
+                D_fake, D_fake_feature = self.D(fakeAB.detach())
                 loss_fake = D_fake.mean(0).view(1)
                 loss_fake.backward()
                 self.optimD.step()
@@ -119,9 +120,8 @@ class SNCWGAN(BaseModel):
                 loss_G = -pred_fake.mean(0).view(1)
                 lossl1 = self.lossl1(x_fake, labels) * self.lamda
                 losssam = SAM(x_fake, labels) * self.lambdasam
-                # lossl1 = self.lossl1(x_fake, labels) * torch.abs(loss_G.detach() / self.lossl1(x_fake, labels).detach()).detach()
-                # losssam = SAM(x_fake, labels) * torch.abs(loss_G.detach() / SAM(x_fake, labels).detach()).detach()
-                loss_G += lossl1 + losssam
+                perceptual_loss = nn.MSELoss()(D_real_feature, D_fake_feature) * 100
+                loss_G += lossl1 + losssam + perceptual_loss
                 # train the generator
                 loss_G.backward()
                 self.optimG.step()

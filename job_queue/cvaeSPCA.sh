@@ -29,7 +29,6 @@
 # -- end of LSF options --
 
 nvidia-smi
-export CUDA_VISIBLE_DEVICES=0,1
 
 # Load modules
 module load cuda/11.8

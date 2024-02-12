@@ -18,6 +18,7 @@ from torch import autograd
 import functools
 from Models.Transformer.MST_Plus_Plus import MSAB
 from Models.Transformer.swin_transformer import SwinTransformerBlock
+from Models.Transformer.swin_transformer_v2 import SwinTransformerBlock as SwinTransformerBlock_v2
 from Models.Transformer.Base import BaseModel
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
@@ -41,7 +42,8 @@ class SWTB(nn.Module):
     def __init__(self, dim, input_resolution, num_heads=1, window_size=8):
         super().__init__()
         self.input_resolution = input_resolution
-        self.model = SwinTransformerBlock(dim=dim, input_resolution=input_resolution, num_heads=num_heads, window_size=window_size)
+        # self.model = SwinTransformerBlock(dim=dim, input_resolution=input_resolution, num_heads=num_heads, window_size=window_size)
+        self.model = SwinTransformerBlock_v2(dim=dim, input_resolution=input_resolution, num_heads=num_heads, window_size=window_size)
         
     def forward(self, x):
         B, C, H, W = x.shape
@@ -298,7 +300,7 @@ if __name__ == '__main__':
                     out_dim=31,
                     img_size=[128, 128], 
                     window_size=8, 
-                    n_block=[2,2,4,4], 
+                    n_block=[2,2,2,2], 
                     bottleblock = 4)
     spec = BaseModel(opt, model, model_name='DTN')
     if opt.loadmodel:

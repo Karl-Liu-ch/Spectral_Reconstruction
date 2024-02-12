@@ -36,4 +36,4 @@ source ./miniconda3/bin/activate
 conda activate pytorch
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u Models/Diffusion_Model/model.py --gpu_id 0 --batch_size 64
+python -u Models/Diffusion_Model/model.py --gpu_id 0 --batch_size 64 --loadmodel
