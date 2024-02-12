@@ -71,6 +71,7 @@ class SNCWGAN(BaseModel):
             print('DensenetGenerator, with noise')
         # self.D = SN_Discriminator(34)
         self.D = SN_Discriminator_perceptualLoss(34)
+        # self.D = SNResnetDiscriminator_perceptualLoss(34)
         super().init_Net()
         
     def train(self):
@@ -120,7 +121,9 @@ class SNCWGAN(BaseModel):
                 loss_G = -pred_fake.mean(0).view(1)
                 lossl1 = self.lossl1(x_fake, labels) * self.lamda
                 losssam = SAM(x_fake, labels) * self.lambdasam
-                perceptual_loss = nn.MSELoss()(D_real_feature, D_fake_feature) * 100
+                perceptual_loss = 0
+                for i in range(len(D_fake_feature)):
+                    perceptual_loss += nn.MSELoss()(D_real_feature[i], D_fake_feature[i]) * 100
                 loss_G += lossl1 + losssam + perceptual_loss
                 # train the generator
                 loss_G.backward()
