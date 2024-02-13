@@ -134,7 +134,7 @@ class SNCWGAN(BaseModel):
                 self.iteration = self.iteration+1
                 if self.iteration % 20 == 0:
                     print('[iter:%d/%d],lr=%.9f,train_losses.avg=%.9f'
-                        % (self.iteration, self.total_iteration, lrG, losses.avg))
+                        % (self.epoch, self.end_epoch, lrG, losses.avg))
             # validation
             mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
             print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
