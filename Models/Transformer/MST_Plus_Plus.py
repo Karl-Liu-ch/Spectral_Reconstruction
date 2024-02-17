@@ -299,7 +299,7 @@ if __name__ == '__main__':
     model = MST_Plus_Plus().cuda()
     train_model = BaseModel(opt, model, model_name='MSTPlusPlus')
     try:
-        train_model.load_checkpoint()
+        train_model.load_checkpoint(best=True)
         print("model loaded")
     except:
         pass

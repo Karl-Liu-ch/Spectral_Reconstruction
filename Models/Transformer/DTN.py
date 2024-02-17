@@ -12,6 +12,7 @@ from utils import AverageMeter, record_loss, Loss_MRAE, Loss_RMSE, Loss_PSNR, Lo
     Loss_SAM, Loss_SSIM, reconRGB, Loss_SID, SAM
 from options import opt
 import os
+from utils import *
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 from torch import autograd
@@ -20,6 +21,7 @@ from Models.Transformer.MST_Plus_Plus import MSAB
 from Models.Transformer.swin_transformer import SwinTransformerBlock
 from Models.Transformer.swin_transformer_v2 import SwinTransformerBlock as SwinTransformerBlock_v2
 from Models.Transformer.Base import BaseModel
+from dataset.datasets import TestFullDataset
 os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
 if opt.multigpu:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
@@ -33,10 +35,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 criterion_mrae = Loss_MRAE()
 criterion_rmse = Loss_RMSE()
 criterion_psnr = Loss_PSNR()
+criterion_psnrrgb = Loss_PSNR()
 criterion_sam = Loss_SAM()
 criterion_sid = Loss_SID()
-# criterion_fid = Loss_Fid().cuda()
-# criterion_ssim = Loss_SSIM().cuda()
+criterion_fid = Loss_Fid().cuda()
+criterion_ssim = Loss_SSIM().cuda()
 
 class SWTB(nn.Module):
     def __init__(self, dim, input_resolution, num_heads=1, window_size=8):
@@ -273,6 +276,7 @@ class DTN(nn.Module):
     def forward(self, x):
         # Embedding
         fea = self.embedding(x)
+        fea_in = fea.clone()
 
         # Encoder
         fea_encoder = []
@@ -291,9 +295,92 @@ class DTN(nn.Module):
             fea = LeWinBlcok(fea)
 
         # Mapping
-        out = self.mapping(fea) + fea
+        out = self.mapping(fea) + fea_in
 
         return out
+
+class TrainDTN(BaseModel):
+    def test_full_resol(self):
+        modelname = self.name
+        try:
+            os.mkdir('/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/FullResol/')
+        except:
+            pass
+        root = '/work3/s212645/Spectral_Reconstruction/RealHyperSpectrum/'
+        H_ = 128
+        W_ = 128
+        losses_mrae = AverageMeter()
+        losses_rmse = AverageMeter()
+        losses_psnr = AverageMeter()
+        losses_psnrrgb = AverageMeter()
+        losses_sam = AverageMeter()
+        losses_sid = AverageMeter()
+        losses_fid = AverageMeter()
+        losses_ssim = AverageMeter()
+        test_data = TestFullDataset(data_root=opt.data_root, crop_size=opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
+        print("Test set samples: ", len(test_data))
+        test_loader = DataLoader(dataset=test_data, batch_size=opt.batch_size, shuffle=False, num_workers=2, pin_memory=True)
+        count = 0
+        for i, (input, target) in enumerate(test_loader):
+            input = input.cuda()
+            target = target.cuda()
+            H, W = input.shape[-2], input.shape[-1]
+            if H != H_ or W != W_:
+                self.G = DTN(in_dim=3, 
+                        out_dim=31,
+                        img_size=[H, W], 
+                        window_size=8, 
+                        n_block=[2,2,2,2], 
+                        bottleblock = 4).to(device)
+                H_ = H
+                W_ = W
+                self.load_checkpoint()
+            with torch.no_grad():
+                output = self.G(input)
+                rgbs = []
+                reals = []
+                for j in range(output.shape[0]):
+                    mat = {}
+                    mat['cube'] = np.transpose(target[j,:,:,:].cpu().numpy(), [1,2,0])
+                    mat['rgb'] = np.transpose(input[j,:,:,:].cpu().numpy(), [1,2,0])
+                    real = mat['rgb']
+                    real = (real - real.min()) / (real.max()-real.min())
+                    mat['rgb'] = real
+                    rgb = SaveSpectral(output[j,:,:,:], count, root='/work3/s212645/Spectral_Reconstruction/FakeHyperSpectrum/' + modelname + '/FullResol/')
+                    rgbs.append(rgb)
+                    reals.append(real)
+                    count += 1
+                loss_mrae = criterion_mrae(output, target)
+                loss_rmse = criterion_rmse(output, target)
+                loss_psnr = criterion_psnr(output, target)
+                loss_sam = criterion_sam(output, target)
+                loss_sid = criterion_sid(output, target)
+                rgbs = np.array(rgbs).transpose(0, 3, 1, 2)
+                rgbs = torch.from_numpy(rgbs).cuda()
+                reals = np.array(reals).transpose(0, 3, 1, 2)
+                reals = torch.from_numpy(reals).cuda()
+                # loss_fid = criterion_fid(rgbs, reals)
+                loss_ssim = criterion_ssim(rgbs, reals)
+                loss_psrnrgb = criterion_psnrrgb(rgbs, reals)
+            # record loss
+            losses_mrae.update(loss_mrae.data)
+            losses_rmse.update(loss_rmse.data)
+            losses_psnr.update(loss_psnr.data)
+            losses_sam.update(loss_sam.data)
+            losses_sid.update(loss_sid.data)
+            # losses_fid.update(loss_fid.data)
+            losses_ssim.update(loss_ssim.data)
+            losses_psnrrgb.update(loss_psrnrgb.data)
+        criterion_sam.reset()
+        criterion_psnr.reset()
+        criterion_psnrrgb.reset()
+        file = '/zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/result.txt'
+        f = open(file, 'a')
+        f.write(modelname+':\n')
+        f.write(f'MRAE:{losses_mrae.avg}, RMSE: {losses_rmse.avg}, PNSR:{losses_psnr.avg}, SAM: {losses_sam.avg}, SID: {losses_sid.avg}, SSIM: {losses_ssim.avg}, PSNRRGB: {losses_psnrrgb.avg}')
+        f.write('\n')
+        return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg, losses_fid.avg, losses_ssim.avg, losses_psnrrgb.avg
+
 
 if __name__ == '__main__':
     model = DTN(in_dim=3, 
@@ -302,7 +389,7 @@ if __name__ == '__main__':
                     window_size=8, 
                     n_block=[2,2,2,2], 
                     bottleblock = 4)
-    spec = BaseModel(opt, model, model_name='DTN')
+    spec = TrainDTN(opt, model, model_name='DTN')
     if opt.loadmodel:
         try:
             spec.load_checkpoint()
@@ -314,3 +401,6 @@ if __name__ == '__main__':
     elif opt.mode == 'test':
         spec.load_checkpoint()
         spec.test()
+    elif opt.mode == 'testfull':
+        spec.load_checkpoint()
+        spec.test_full_resol()

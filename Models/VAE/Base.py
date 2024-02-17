@@ -41,6 +41,7 @@ class BaseModel():
         self.iteration = 0
         self.model = model
         self.multiGPU = multiGPU
+        self.best_mrae = 1000
         if self.multiGPU:
             self.model = nn.DataParallel(self.model)
         self.model.to(device)
@@ -108,8 +109,8 @@ class BaseModel():
             print(f'Saving to {self.root}')
             mrae_loss, rmse_loss, psnr_loss, sam_loss, sid_loss = self.validate(val_loader)
             print(f'MRAE:{mrae_loss}, RMSE: {rmse_loss}, PNSR:{psnr_loss}, SAM: {sam_loss}, SID: {sid_loss}')
-            if mrae_loss < record_mrae_loss:
-                record_mrae_loss = mrae_loss
+            if mrae_loss < self.best_mrae:
+                self.best_mrae = mrae_loss
                 self.save_checkpoint(best=True)
             # print loss
             print(" Iter[%06d], Epoch[%06d], learning rate : %.9f, Train MRAE: %.9f, Test MRAE: %.9f, "
@@ -248,6 +249,7 @@ class BaseModel():
             state = {
                 'epoch': self.epoch,
                 'iter': self.iteration,
+                'best_mrae': self.best_mrae, 
                 'state_dict': self.model.module.state_dict(),
                 'optimizer': self.optimizer.state_dict(),
             }
@@ -255,6 +257,7 @@ class BaseModel():
             state = {
                 'epoch': self.epoch,
                 'iter': self.iteration,
+                'best_mrae': self.best_mrae, 
                 'state_dict': self.model.state_dict(),
                 'optimizer': self.optimizer.state_dict(),
             }
@@ -277,6 +280,7 @@ class BaseModel():
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.iteration = checkpoint['iter']
         self.epoch = checkpoint['epoch']
+        self.best_mrae = checkpoint['best_mrae']
         try:
             self.load_metrics()
         except:

@@ -74,6 +74,24 @@ def get_dataset(path, list, imsize):
     specs, rgbs = get_all_mats(path, list, imsize)
     return specs, rgbs
 
+def get_full_dataset(path, list):
+    specs = []
+    rgbs = []
+    for file in list:
+        mat = scipy.io.loadmat(path+file)
+        spec = np.float32(np.array(mat['cube']))
+        rgb = np.float32(np.array(mat['rgb']))
+        h = int((rgb.shape[0] // 128) * 128)
+        w = int((rgb.shape[1] // 128) * 128)
+        spec = spec[:h, :w, :]
+        rgb = rgb[:h, :w, :]
+        print(h, w)
+        specs.append(spec)
+        rgbs.append(rgb)
+        # break
+        print('finish: ', file)
+    return specs, rgbs
+
 def split_train(path, valid_ratio, test_ratio, imsize):
     filelist = os.listdir(path)
     filelist.sort()
@@ -122,6 +140,31 @@ def split_test(path, valid_ratio, test_ratio, imsize):
     for k in range(test_size):
         testlist.append(matlist[k + train_size + valid_size])
     test_sets = get_dataset(path, testlist, imsize)
+    return test_sets
+
+def split_full_test(path, valid_ratio, test_ratio):
+    filelist = os.listdir(path)
+    filelist.sort()
+    reg = re.compile(r'.*.mat')
+    matlist = []
+    for file in filelist:
+        if re.match(reg, file):
+            matlist.append(file)
+    all_length = len(matlist)
+    test_size = int(all_length * test_ratio)
+    valid_size = int(all_length * valid_ratio)
+    train_size = all_length - test_size - valid_size
+    matlist.sort()
+    trainlist = []
+    validlist = []
+    testlist = []
+    for i in range(train_size):
+        trainlist.append(matlist[i])
+    for j in range(valid_size):
+        validlist.append(matlist[j + train_size])
+    for k in range(test_size):
+        testlist.append(matlist[k + train_size + valid_size])
+    test_sets = get_full_dataset(path, testlist)
     return test_sets
 
 def split_valid(path, valid_ratio, test_ratio, imsize):

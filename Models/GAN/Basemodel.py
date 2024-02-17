@@ -53,6 +53,7 @@ class BaseModel():
         per_epoch_iteration = 1000
         self.total_iteration = per_epoch_iteration*opt.end_epoch
         self.iteration = 0
+        self.best_mrae = 1000
         
         self.lamda = 100
         self.lambdasam = 100
@@ -213,7 +214,7 @@ class BaseModel():
         f.write(f'MRAE:{losses_mrae.avg}, RMSE: {losses_rmse.avg}, PNSR:{losses_psnr.avg}, SAM: {losses_sam.avg}, SID: {losses_sid.avg}, FID: {losses_fid.avg}, SSIM: {losses_ssim.avg}, PSNRRGB: {losses_psnrrgb.avg}')
         f.write('\n')
         return losses_mrae.avg, losses_rmse.avg, losses_psnr.avg, losses_sam.avg, losses_sid.avg, losses_fid.avg, losses_ssim.avg, losses_psnrrgb.avg
-    
+
     def save_metrics(self):
         name = 'metrics.pth'
         torch.save(self.metrics, os.path.join(self.root, name))
@@ -228,6 +229,7 @@ class BaseModel():
             state = {
                 'epoch': self.epoch,
                 'iter': self.iteration,
+                'best_mrae': self.best_mrae,
                 'G': self.G.module.state_dict(),
                 'D': self.D.module.state_dict(),
                 'optimG': self.optimG.state_dict(),
@@ -237,6 +239,7 @@ class BaseModel():
             state = {
                 'epoch': self.epoch,
                 'iter': self.iteration,
+                'best_mrae': self.best_mrae,
                 'G': self.G.state_dict(),
                 'D': self.D.state_dict(),
                 'optimG': self.optimG.state_dict(),
@@ -248,8 +251,11 @@ class BaseModel():
         name = 'net.pth'
         torch.save(state, os.path.join(self.root, name))
         
-    def load_checkpoint(self):
-        checkpoint = torch.load(os.path.join(self.root, 'net.pth'))
+    def load_checkpoint(self, best = False):
+        if best:
+            checkpoint = torch.load(os.path.join(self.root, 'net_epoch_best.pth'))
+        else:
+            checkpoint = torch.load(os.path.join(self.root, 'net.pth'))
         if self.multiGPU:
             self.G.module.load_state_dict(checkpoint['G'])
             self.D.module.load_state_dict(checkpoint['D'])
@@ -260,6 +266,7 @@ class BaseModel():
         self.optimD.load_state_dict(checkpoint['optimD'])
         self.iteration = checkpoint['iter']
         self.epoch = checkpoint['epoch']
+        self.best_mrae = checkpoint['best_mrae']
         try:
             self.load_metrics()
         except:

@@ -12,7 +12,7 @@ import torch.nn as nn
 # from options import opt
 import scipy.io
 import re
-from dataset.data_augmentation import split_train, split_valid, split_test
+from dataset.data_augmentation import split_train, split_valid, split_test, split_full_test
 
 root = '/work3/s212645/Spectral_Reconstruction/clean/'
 datanames = ['BGU/','ARAD/']
@@ -72,6 +72,17 @@ class TestDataset(GetDataset):
         self.testset = []
         for name in self.datanames:
             self.testset.append(split_test(data_root+ 'clean/' + name, valid_ratio= valid_ratio, test_ratio=test_ratio, imsize=self.crop_size))
+        for testset in self.testset:
+            self.rgb.extend(testset[1])
+            self.hyper.extend(testset[0])
+        self.length = len(self.hyper)
+
+class TestFullDataset(GetDataset):
+    def __init__(self, data_root, crop_size, valid_ratio, test_ratio, arg=False):
+        super().__init__(data_root, crop_size, valid_ratio, test_ratio, arg=False)
+        self.testset = []
+        for name in self.datanames:
+            self.testset.append(split_full_test(data_root+ 'clean/' + name, valid_ratio= valid_ratio, test_ratio=test_ratio))
         for testset in self.testset:
             self.rgb.extend(testset[1])
             self.hyper.extend(testset[0])
