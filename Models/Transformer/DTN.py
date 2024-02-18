@@ -397,10 +397,12 @@ if __name__ == '__main__':
             print('pretrained model loading failed')
     if opt.mode == 'train':
         spec.train()
+        spec.load_checkpoint(best=True)
         spec.test()
+        spec.test_full_resol()
     elif opt.mode == 'test':
-        spec.load_checkpoint()
+        spec.load_checkpoint(best=True)
         spec.test()
     elif opt.mode == 'testfull':
-        spec.load_checkpoint()
+        spec.load_checkpoint(best=True)
         spec.test_full_resol()

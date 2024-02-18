@@ -37,3 +37,4 @@ conda activate pytorch
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
 python -u Models/GAN/SNCWGAN.py --gpu_id 0 --batch_size 48 --G DTN --mode train --loadmodel
+# python -u Models/GAN/SNCWGAN.py --gpu_id 0 --batch_size 48 --G DTN --mode train

@@ -36,4 +36,5 @@ source ./miniconda3/bin/activate
 conda activate pytorch
 cd /zhome/02/b/164706/Master_Courses/2023_Fall/Spectral_Reconstruction/
 export PYTHONUNBUFFERED=1
-python -u Models/Transformer/MST_Plus_Plus.py --gpu_id 0 --batch_size 128 --loadmodel
+# python -u Models/Transformer/MST_Plus_Plus.py --gpu_id 0 --batch_size 128 --loadmodel
+python -u Models/Transformer/MST_Plus_Plus.py --gpu_id 0 --batch_size 128

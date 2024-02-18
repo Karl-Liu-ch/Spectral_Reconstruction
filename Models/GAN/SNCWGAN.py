@@ -125,10 +125,10 @@ class SNCWGAN(BaseModel):
                 self.optimD.zero_grad()
                 D_real, D_real_feature = self.D(realAB)
                 loss_real = -D_real.mean(0).view(1)
-                loss_real.backward(retain_graph=True)
+                loss_real.backward(retain_graph = True)
                 D_fake, _ = self.D(fakeAB.detach())
                 loss_fake = D_fake.mean(0).view(1)
-                loss_fake.backward(retain_graph=True)
+                loss_fake.backward()
                 self.optimD.step()
                 
                 # train G
@@ -141,8 +141,8 @@ class SNCWGAN(BaseModel):
                 lossl1 = self.lossl1(x_fake, labels) * self.lamda
                 losssam = SAM(x_fake, labels) * self.lambdasam
                 perceptual_loss = 0
-                for i in range(len(D_fake_feature)):
-                    perceptual_loss += nn.MSELoss()(D_real_feature[i], D_fake_feature[i])
+                for k in range(len(D_fake_feature)):
+                    perceptual_loss += nn.MSELoss()(D_real_feature[k].detach(), D_fake_feature[k])
                 loss_G += lossl1 + losssam + perceptual_loss
                 # train the generator
                 loss_G.backward()
