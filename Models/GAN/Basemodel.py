@@ -92,7 +92,7 @@ class BaseModel():
         # print("Validation set samples: ", len(self.val_data))
         
     def train(self):
-        self.load_dataset()
+        pass
                 
     def validate(self, val_loader):
         self.G.eval()

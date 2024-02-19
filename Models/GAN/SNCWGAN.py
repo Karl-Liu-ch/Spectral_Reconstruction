@@ -50,10 +50,12 @@ class SNCWGAN(BaseModel):
         self.lossl1 = nn.L1Loss()
         self.lamda = 100
         self.lambdasam = 100
+        self.lambdaperceptual = 1
         self.root = f'/work3/s212645/Spectral_Reconstruction/checkpoint/SNCWGAN/{self.opt.G}_{self.lamda}_{self.lambdasam}/'
         self.nonoise = False
         self.init_Net()
         self.init_metrics()
+        self.load_dataset()
     
     def init_Net(self):
         if self.opt.G == 'DTN':
@@ -143,7 +145,7 @@ class SNCWGAN(BaseModel):
                 perceptual_loss = 0
                 for k in range(len(D_fake_feature)):
                     perceptual_loss += nn.MSELoss()(D_real_feature[k].detach(), D_fake_feature[k])
-                loss_G += lossl1 + losssam + perceptual_loss
+                loss_G += lossl1 + losssam + perceptual_loss * self.lambdaperceptual
                 # train the generator
                 loss_G.backward()
                 self.optimG.step()
