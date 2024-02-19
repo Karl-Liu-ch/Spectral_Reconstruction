@@ -10,6 +10,7 @@ from pyDOE import lhs
 from bayesoptim.gp import GPR
 from bayesoptim.functions import SNCWGAN_opt
 from options import opt
+import joblib
 
 def normalize(y, return_mean_std=False):
     y_mean = np.mean(y)
@@ -219,12 +220,19 @@ def sample_next_point(d, acquisition_func, candidates=None, bounds=None, strict_
     
     return opt_x
 
-def bo_c(func, n_eval, n_init_eval, n_candidates, bounds, alpha=1e-4, save_dir=None):
+def bo_c(func, n_eval, n_init_eval, n_candidates, bounds, alpha=1e-4, save_dir=None, load_dir = None):
     
 #    kernel = gp.kernels.Matern()
     kernel = gp.kernels.ConstantKernel(1.0, (1., 1.)) * gp.kernels.RBF(1.0, (1e-5, 1e5))
     gp_model = GPR(kernel=kernel, alpha=alpha, n_restarts_optimizer=100, normalize_y=False)
     gpc_model = GPC(kernel=kernel, n_restarts_optimizer=100)
+
+    if load_dir is not None:
+        gp_model = joblib.load(filename=f"{load_dir}/gp.model")
+        gpc_model = joblib.load(filename=f"{load_dir}/gpc.model")
+    if save_dir is not None:
+        joblib.dump(gp_model, f'{save_dir}/gp.model')
+        joblib.dump(gpc_model, f'{save_dir}/gpc.model')
     
     dim = func.dim
     
@@ -273,16 +281,20 @@ def bo_c(func, n_eval, n_init_eval, n_candidates, bounds, alpha=1e-4, save_dir=N
         opt_y = ys[vs][opt_idx]
         opt_ys.append(opt_y) # Best performance so far
         print('{}: y {} v {} Best-so-far {}'.format(i+1, y, v, opt_y))
+
+        if save_dir is not None:
+            joblib.dump(gp_model, f'{save_dir}/gp.model')
+            joblib.dump(gpc_model, f'{save_dir}/gpc.model')
         
     return opt_x, opt_ys
 
-def optimize(n_eval, n_init_eval, func):
+def optimize(n_eval, n_init_eval, func, save_dir = None, load_dir = None):
     
     dim = func.dim
     n_candidates = 1000*dim
     bounds = func.bounds
     
-    opt_x, opt_ys = bo_c(func, n_eval, n_init_eval, n_candidates, bounds)
+    opt_x, opt_ys = bo_c(func, n_eval, n_init_eval, n_candidates, bounds, save_dir, load_dir)
     print('Optimal: CL/CD {}'.format(opt_ys[-1]))
         
     hyperparameters = func.synthesize(opt_x)
@@ -291,8 +303,15 @@ def optimize(n_eval, n_init_eval, func):
     return opt_x, hyperparameters, opt_ys
 
 if __name__ == '__main__':
+    alpha=1e-4
+    kernel = gp.kernels.ConstantKernel(1.0, (1., 1.)) * gp.kernels.RBF(1.0, (1e-5, 1e5))
+    gp_model = GPR(kernel=kernel, alpha=alpha, n_restarts_optimizer=100, normalize_y=False)
+    save_dir = '/work3/s212645/gpmodel'
+    load_dir = save_dir
+    joblib.dump(gp_model, f'{save_dir}/gp.model')
+    gp_model = joblib.load(filename=f"{load_dir}/gp.model")
     func = SNCWGAN_opt(opt)
-    opt_x, hyperparameters, opt_ys = optimize(1000, 10, func)
+    opt_x, hyperparameters, opt_ys = optimize(1000, 10, func, save_dir, load_dir)
     print(hyperparameters)
     for i in range(10):
         successful = False

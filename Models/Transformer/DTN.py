@@ -296,6 +296,7 @@ class DTN(nn.Module):
 
         # Mapping
         out = self.mapping(fea) + fea_in
+        # out = self.mapping(fea) + fea
 
         return out
 
