@@ -220,36 +220,55 @@ def sample_next_point(d, acquisition_func, candidates=None, bounds=None, strict_
     
     return opt_x
 
-def bo_c(func, n_eval, n_init_eval, n_candidates, bounds, alpha=1e-4, save_dir=None, load_dir = None):
+def bo_c(func, n_eval, n_init_eval, n_candidates, bounds, save_dir=None, load_dir = None, alpha=1e-4):
     
-#    kernel = gp.kernels.Matern()
+    # kernel = gp.kernels.Matern()
+    alpha=1e-4
     kernel = gp.kernels.ConstantKernel(1.0, (1., 1.)) * gp.kernels.RBF(1.0, (1e-5, 1e5))
     gp_model = GPR(kernel=kernel, alpha=alpha, n_restarts_optimizer=100, normalize_y=False)
     gpc_model = GPC(kernel=kernel, n_restarts_optimizer=100)
 
-    if load_dir is not None:
-        gp_model = joblib.load(filename=f"{load_dir}/gp.model")
-        gpc_model = joblib.load(filename=f"{load_dir}/gpc.model")
-    if save_dir is not None:
-        joblib.dump(gp_model, f'{save_dir}/gp.model')
-        joblib.dump(gpc_model, f'{save_dir}/gpc.model')
-    
     dim = func.dim
     
-    # Initial evaluations
-    xs = lhs(dim, samples=n_init_eval, criterion='cm')
-    # xs = func.sample_design_variables(n_init_eval, method='random')
-    xs = xs * (bounds[:,1] - bounds[:,0]) + bounds[:,0]
-    # xs = np.clip(xs, bounds[:, 0], bounds[:, 1])
-    ys = func(xs)
-    vs = func.is_feasible(xs)
+    if load_dir is not None:
+        try:
+            gp_model = joblib.load(filename=f"{load_dir}/gp.model")
+            gpc_model = joblib.load(filename=f"{load_dir}/gpc.model")
+            xs = np.load(f'{save_dir}/xs.npy')
+            ys = np.load(f'{save_dir}/ys.npy')
+            vs = np.load(f'{save_dir}/vs.npy')
+            opt_idx = np.load(f'{save_dir}/opt_idx.npy')
+            opt_x = np.load(f'{save_dir}/opt_x.npy')
+            opt_y = np.load(f'{save_dir}/opt_y.npy')
+            opt_ys = np.load(f'{save_dir}/opt_ys.npy')
+            print('model loaded')
+        except:
+            # Initial evaluations
+            xs = lhs(dim, samples=n_init_eval, criterion='cm')
+            # xs = func.sample_design_variables(n_init_eval, method='random')
+            xs = xs * (bounds[:,1] - bounds[:,0]) + bounds[:,0]
+            # xs = np.clip(xs, bounds[:, 0], bounds[:, 1])
+            ys = func(xs)
+            vs = func.is_feasible(xs)
+            
+            opt_idx = np.argmax(ys[vs])
+            opt_x = xs[vs][opt_idx]
+            opt_y = ys[vs][opt_idx]
+            
+            opt_ys = np.array([opt_y])
+            print(opt_y.shape, opt_ys.shape)
     
-    opt_idx = np.argmax(ys[vs])
-    opt_x = xs[vs][opt_idx]
-    opt_y = ys[vs][opt_idx]
+    if save_dir is not None:
+        np.save(f'{save_dir}/xs.npy', xs)
+        np.save(f'{save_dir}/ys.npy', ys)
+        np.save(f'{save_dir}/vs.npy', vs)
+        np.save(f'{save_dir}/opt_idx.npy', opt_idx)
+        np.save(f'{save_dir}/opt_x.npy', opt_x)
+        np.save(f'{save_dir}/opt_y.npy', opt_y)
+        np.save(f'{save_dir}/opt_ys.npy', opt_ys)
     
-    opt_ys = [opt_y]
-    
+    file = 'hyperparameters.txt'
+    f = open(file, 'a')
     for i in range(n_init_eval, n_eval):
         
         ys_normalized = normalize(ys[vs])
@@ -279,13 +298,22 @@ def bo_c(func, n_eval, n_init_eval, n_candidates, bounds, alpha=1e-4, save_dir=N
             
         opt_x = xs[vs][opt_idx]
         opt_y = ys[vs][opt_idx]
-        opt_ys.append(opt_y) # Best performance so far
+        opt_ys = np.append(opt_ys, [opt_y], axis = 0) # Best performance so far
+        print(opt_y.shape, opt_ys.shape)
         print('{}: y {} v {} Best-so-far {}'.format(i+1, y, v, opt_y))
+        f.write('{}: y {} v {} Best-so-far {}\n'.format(i+1, y, v, opt_y))
 
         if save_dir is not None:
             joblib.dump(gp_model, f'{save_dir}/gp.model')
             joblib.dump(gpc_model, f'{save_dir}/gpc.model')
-        
+            np.save(f'{save_dir}/xs.npy', xs)
+            np.save(f'{save_dir}/ys.npy', ys)
+            np.save(f'{save_dir}/vs.npy', vs)
+            np.save(f'{save_dir}/opt_idx.npy', opt_idx)
+            np.save(f'{save_dir}/opt_x.npy', opt_x)
+            np.save(f'{save_dir}/opt_y.npy', opt_y)
+            np.save(f'{save_dir}/opt_ys.npy', opt_ys)
+    f.close()
     return opt_x, opt_ys
 
 def optimize(n_eval, n_init_eval, func, save_dir = None, load_dir = None):
@@ -294,8 +322,8 @@ def optimize(n_eval, n_init_eval, func, save_dir = None, load_dir = None):
     n_candidates = 1000*dim
     bounds = func.bounds
     
-    opt_x, opt_ys = bo_c(func, n_eval, n_init_eval, n_candidates, bounds, save_dir, load_dir)
-    print('Optimal: CL/CD {}'.format(opt_ys[-1]))
+    opt_x, opt_ys = bo_c(func, n_eval, n_init_eval, n_candidates, bounds, save_dir=save_dir, load_dir=load_dir, alpha=1e-4)
+    print('Optimal: {}'.format(opt_ys[-1]))
         
     hyperparameters = func.synthesize(opt_x)
     opt_ys = np.hstack((np.nan*np.ones(n_init_eval), opt_ys))
@@ -303,15 +331,10 @@ def optimize(n_eval, n_init_eval, func, save_dir = None, load_dir = None):
     return opt_x, hyperparameters, opt_ys
 
 if __name__ == '__main__':
-    alpha=1e-4
-    kernel = gp.kernels.ConstantKernel(1.0, (1., 1.)) * gp.kernels.RBF(1.0, (1e-5, 1e5))
-    gp_model = GPR(kernel=kernel, alpha=alpha, n_restarts_optimizer=100, normalize_y=False)
     save_dir = '/work3/s212645/gpmodel'
     load_dir = save_dir
-    joblib.dump(gp_model, f'{save_dir}/gp.model')
-    gp_model = joblib.load(filename=f"{load_dir}/gp.model")
     func = SNCWGAN_opt(opt)
-    opt_x, hyperparameters, opt_ys = optimize(1000, 10, func, save_dir, load_dir)
+    opt_x, hyperparameters, opt_ys = optimize(10, 5, func, save_dir, load_dir)
     print(hyperparameters)
     for i in range(10):
         successful = False
