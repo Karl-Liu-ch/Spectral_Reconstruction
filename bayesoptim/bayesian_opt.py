@@ -334,13 +334,16 @@ if __name__ == '__main__':
     save_dir = '/work3/s212645/gpmodel'
     load_dir = save_dir
     func = SNCWGAN_opt(opt)
-    opt_x, hyperparameters, opt_ys = optimize(10, 5, func, save_dir, load_dir)
+    opt_x, hyperparameters, opt_ys = optimize(20, 5, func, save_dir, load_dir)
     print(hyperparameters)
-    for i in range(10):
-        successful = False
-        while not successful:
-            try:
-                opt_x, hyperparameters, opt_ys = optimize(1000, 10, func)
-                successful = True
-            except:
-                pass
+    file = 'hyperparameters.txt'
+    f = open(file, 'a')
+    f.write('Hyperparameters: {}\n'.format(hyperparameters))
+    # for i in range(10):
+    #     successful = False
+    #     while not successful:
+    #         try:
+    #             opt_x, hyperparameters, opt_ys = optimize(20, 5, func, save_dir, load_dir)
+    #             successful = True
+    #         except:
+    #             pass

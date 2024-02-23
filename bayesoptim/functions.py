@@ -53,9 +53,9 @@ class SNCWGAN_BO(SNCWGAN):
     def load_dataset(self):
         # load dataset
         print("\nloading dataset ...")
-        self.train_data = TrainDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.01, test_ratio=0.98)
+        self.train_data = TrainDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
         print(f"Iteration per epoch: {len(self.train_data)}")
-        self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.01, test_ratio=0.98)
+        self.val_data = ValidDataset(data_root=self.opt.data_root, crop_size=self.opt.patch_size, valid_ratio = 0.1, test_ratio=0.1)
         print("Validation set samples: ", len(self.val_data))
     
     def train(self):
@@ -136,7 +136,7 @@ class SNCWGAN_opt(Base):
         lambdal1 = 10 ** x[0]
         lambdasam = 10 ** x[1]
         lambdaperceptual = 10 ** x[2]
-        self.model.end_epoch = 5
+        self.model.end_epoch = 10
         self.model.lamda = lambdal1
         self.model.lambdasam = lambdasam
         self.model.lambdaperceptual = lambdaperceptual
